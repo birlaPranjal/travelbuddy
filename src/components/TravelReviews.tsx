@@ -4,11 +4,25 @@ import { StarIcon } from "@heroicons/react/20/solid";
 
 const reviews = [
   {
-    name: 'Jenny',
-    date: 'Oct 10, 2023',
+    name: 'John',
+    date: 'Nov 15, 2023',
+    avatar: 'https://cdn.usegalileo.ai/stability/ae0e072e-acbb-416d-b5cf-1a5e4cb24984.png',
+    rating: 4,
+    comment: 'Great experience! The hotel was clean and comfortable, and the staff were friendly. The location is convenient, with easy access to transportation.'
+  },
+  {
+    name: 'Emily',
+    date: 'Nov 20, 2023',
+    avatar: 'https://cdn.usegalileo.ai/stability/ae0e072e-acbb-416d-b5cf-1a5e4cb24984.png',
+    rating: 3,
+    comment: 'Average experience. The hotel was decent, but nothing special. The staff were okay, but not very attentive. The location is okay, but not the best.'
+  },
+  {
+    name: 'Michael',
+    date: 'Nov 25, 2023',
     avatar: 'https://cdn.usegalileo.ai/stability/ae0e072e-acbb-416d-b5cf-1a5e4cb24984.png',
     rating: 5,
-    comment: 'Fantastic experience! The hotel was clean and comfortable, and the staff were friendly and helpful. The location is great, close to shopping and restaurants. I would definitely stay here again.'
+    comment: 'Amazing experience! The hotel exceeded my expectations. The staff were incredibly friendly and helpful. The location is perfect, with stunning views.'
   },
   // Add more reviews...
 ];
