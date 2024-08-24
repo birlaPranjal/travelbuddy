@@ -3,6 +3,8 @@ import Image from 'next/image';
 const destinations = [
   { name: 'Paris', image: 'https://cdn.usegalileo.ai/stability/981c31bd-5b04-40d7-91a0-063fa69548b9.png' },
   { name: 'New York', image: 'https://cdn.usegalileo.ai/stability/bfc184a0-58ac-4617-8c08-153cd7a500a2.png' },
+  { name: 'New Delhi', image: 'https://cdn.usegalileo.ai/stability/981c31bd-5b04-40d7-91a0-063fa69548b9.png' },
+  { name: 'Manali', image: 'https://cdn.usegalileo.ai/stability/bfc184a0-58ac-4617-8c08-153cd7a500a2.png' },
   // Add more destinations...
 ];
 
