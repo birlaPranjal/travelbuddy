@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: "Discover your next adventure with Wanderlust",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -23,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(
-          "min-h-screen bg-background font-sans antialiased sm:px-[3vw] md:px-[5vw] lg:px-[7vw] ",
-          fontSans.variable
-        )}>
-          <Header/>
-          {children}
-          <Footer/>
+        "min-h-screen bg-background font-sans antialiased sm:px-[3vw] md:px-[5vw] lg:px-[7vw]",
+        fontSans.variable
+      )}>
+        <Header />
+        {children}
+        <Footer />
       </body>
     </html>
   );

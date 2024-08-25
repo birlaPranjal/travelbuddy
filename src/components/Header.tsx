@@ -1,9 +1,12 @@
+"use client";
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { LoginLink , RegisterLink } from "@kinde-oss/kinde-auth-nextjs/server";
+import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/server";
 
 export default function Header() {
-  const isLoggedIn = true;
+  const [isLoggedIn, setIsLoggedIn] = useState("False");
+
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7eff3] px-4 py-5">
       <div className="flex items-center gap-4 text-[#0d161b]">
@@ -28,7 +31,7 @@ export default function Header() {
               <Button>Log in</Button>
             </LoginLink>
             <RegisterLink>
-              <Button>Sign in</Button>
+              <Button>Sign up</Button>
             </RegisterLink>
           </>
         )}
