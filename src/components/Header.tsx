@@ -1,11 +1,22 @@
 "use client";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/server";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 
-export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState("False");
+interface HeaderProps {
+  initialIsAuthenticated: boolean;
+}
+
+export default function Header({ initialIsAuthenticated }: HeaderProps) {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(initialIsAuthenticated);
+  const { isLoading, isAuthenticated } = useKindeAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated ) {
+      setIsLoggedIn(isAuthenticated);
+    }
+  }, [isLoading, isAuthenticated]);
 
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7eff3] px-4 py-5">
@@ -27,12 +38,12 @@ export default function Header() {
           <Link href="/profile" className="text-[#0d161b] text-md font-medium leading-normal">Profile</Link>
         ) : (
           <>
-            <LoginLink>
+            <Link href="/api/auth/login">
               <Button>Log in</Button>
-            </LoginLink>
-            <RegisterLink>
+            </Link>
+            <Link href="/api/auth/register">
               <Button>Sign up</Button>
-            </RegisterLink>
+            </Link>
           </>
         )}
       </div>
