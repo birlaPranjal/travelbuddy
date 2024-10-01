@@ -11,6 +11,7 @@ declare module 'next-auth' {
             isVerified: boolean;
             isAcceptingMessages: boolean;
             username: string;
+            isNewUser?: boolean;
         } & DefaultSession['user'];
     }
 }
@@ -21,12 +22,8 @@ declare module 'next-auth/jwt' {
         isVerified: boolean;
         isAcceptingMessages: boolean;
         username: string;
+        isNewUser?: boolean;
     }
-}
-
-interface Credentials {
-    email: string;
-    password: string;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -38,39 +35,80 @@ export const authOptions: NextAuthOptions = {
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" }
             },
-            async authorize(credentials: Credentials): Promise<any> {
-                await dbConnect();
+            async authorize(credentials) {
+                try {
+                    if (!credentials?.email || !credentials?.password) {
+                        throw new Error('Email and password are required');
+                    }
 
-                const user = await UserModel.findOne({ email: credentials.email });
-                if (!user) {
-                    const hashedPassword = await bcrypt.hash(credentials.password, 10);
-                    const newUser = await UserModel.create({
-                        email: credentials.email,
-                        password: hashedPassword,
-                        isVerified: false,
-                    });
-                    return newUser;
+                    await dbConnect();
 
+                    const user = await UserModel.findOne({ email: credentials.email });
+                    
+                    if (!user) {
+                        // Create new user
+                        const hashedPassword = await bcrypt.hash(credentials.password, 10);
+                        const newUser = await UserModel.create({
+                            email: credentials.email,
+                            password: hashedPassword,
+                            isVerified: false,
+                            isAcceptingMessages: true,
+                            isNewUser: true, // Flag to identify new users
+                        });
+                        return {
+                            id: newUser._id.toString(),
+                            email: newUser.email,
+                            isNewUser: true,
+                        };
+                    }
+
+                    const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+                    if (!isValidPassword) {
+                        throw new Error('Invalid credentials');
+                    }
+
+                    return {
+                        id: user._id.toString(),
+                        email: user.email,
+                        isVerified: user.isVerified,
+                        isAcceptingMessages: user.isAcceptingMessages,
+                        username: user.username,
+                    };
+                } catch (error) {
+                    console.error('Authorization error:', error);
+                    return null;
                 }
-
-                const isValidPassword = await bcrypt.compare(credentials.password, user.password);
-                if (!isValidPassword) throw new Error('Invalid email or password');
-
-                return user;
             }
         })
     ],
     
     callbacks: {
-        
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+                token.isVerified = user.isVerified;
+                token.isAcceptingMessages = user.isAcceptingMessages;
+                token.username = user.username;
+                token.isNewUser = user.isNewUser;
+            }
+            return token;
+        },
         async session({ session, token }) {
             if (session.user) {
-                session.user._id = token.id as string;
-                session.user.isVerified = token.isVerified as boolean;
-                session.user.isAcceptingMessages = token.isAcceptingMessages as boolean;
-                session.user.username = token.username as string;
+                session.user._id = token.id;
+                session.user.isVerified = token.isVerified;
+                session.user.isAcceptingMessages = token.isAcceptingMessages;
+                session.user.username = token.username;
+                session.user.isNewUser = token.isNewUser;
             }
             return session;
+        },
+        async redirect({ url, baseUrl }) {
+            // Allows relative callback URLs
+            if (url.startsWith("/")) return `${baseUrl}${url}`
+            // Allows callback URLs on the same origin
+            else if (new URL(url).origin === baseUrl) return url
+            return baseUrl
         }
     },
     
@@ -84,7 +122,8 @@ export const authOptions: NextAuthOptions = {
 
     session: {
         strategy: 'jwt',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
     },
     
-    secret: process.env.NEXTAUTH_SECRET || 'secret',
+    secret: process.env.NEXTAUTH_SECRET,
 };
