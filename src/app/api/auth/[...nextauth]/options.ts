@@ -53,14 +53,18 @@ export const authOptions: NextAuthOptions = {
                             password: hashedPassword,
                             isVerified: false,
                             isAcceptingMessages: true,
-                            isNewUser: true, // Flag to identify new users
+                            isNewUser: true,
                         });
                         return {
                             id: newUser._id.toString(),
                             email: newUser.email,
+                            isVerified: false, // Return the default value if not verified
+                            isAcceptingMessages: true,
+                            username: newUser.username || '', // Ensure you provide a default or ensure this field exists
                             isNewUser: true,
                         };
                     }
+                    
 
                     const isValidPassword = await bcrypt.compare(credentials.password, user.password);
                     if (!isValidPassword) {
@@ -73,6 +77,7 @@ export const authOptions: NextAuthOptions = {
                         isVerified: user.isVerified,
                         isAcceptingMessages: user.isAcceptingMessages,
                         username: user.username,
+                        isNewUser: user.isNewUser,
                     };
                 } catch (error) {
                     console.error('Authorization error:', error);
@@ -122,8 +127,7 @@ export const authOptions: NextAuthOptions = {
 
     session: {
         strategy: 'jwt',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
     },
     
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: "pranjal travel",
 };

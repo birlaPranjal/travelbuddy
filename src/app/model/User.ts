@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   interests: [{ type: String }],
   image: { type: String },
   isVerified: { type: Boolean, default: false },
+  isNewUser: { type: Boolean, default: false },
   isAcceptingMessages: { type: Boolean, default: true },
   username: { type: String },
 }, { timestamps: true });

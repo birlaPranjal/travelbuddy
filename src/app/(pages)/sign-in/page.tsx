@@ -34,11 +34,13 @@ export default function SignIn() {
         // Fetch session data to check if user is new
         const session = await fetch('/api/auth/session');
         const sessionData = await session.json();
-
+        console.log(sessionData);
         if (sessionData?.user?.isNewUser) {
+          console.log('user is new ')
           router.push('/new-user');
         } else {
-          router.push('/dashboard');
+          console.log('User is not new');
+          router.push('/profile');
         }
       }
     } catch (error) {

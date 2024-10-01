@@ -1,19 +1,11 @@
+"use client";
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Camera, Loader2, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Cloudinary } from 'cloudinary-core';
+import { getSession } from 'next-auth/react';
+import {useRouter} from 'next/navigation'
+
+const cloudinary = new Cloudinary({ cloud_name: 'travelee', secure: true });
 
 const languages = [
   'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese',
@@ -26,12 +18,14 @@ const interests = [
 ];
 
 export default function NewUserPage() {
+  const router = useRouter();
   const [location, setLocation] = useState('');
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [previewImage, setPreviewImage] = useState('');
-  const [selectedLanguages, setSelectedLanguages] = useState([]);
-  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
@@ -46,222 +40,244 @@ export default function NewUserPage() {
   const detectLocation = async () => {
     setIsLocating(true);
     setLocationError('');
-
+  
     try {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
-
-      const { latitude, longitude } = position.coords;
-      
-      // In a real app, you'd use a geocoding service here
-      // For demo purposes, we'll just use coordinates
+  
+      const { latitude, longitude } = (position as GeolocationPosition).coords;
       setLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
       setValue('location', `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
-    } catch (error) {
+      console.log(latitude, longitude);
+      // Call OpenCage reverse geocoding API
+      const response = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=dacf037a4ac84e9ebfe82798e50cb633`
+      );
+      const data = await response.json();
+      console.log(data);
+  
+      if (data.results && data.results.length > 0) {
+        const areaName = data.results[0].formatted; // Get formatted address
+        setLocation(`${areaName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
+        // setLocation(data.results[0].formatted);
+        setValue('location', `${areaName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
+      }
+    } catch {
       setLocationError('Failed to detect location. Please enter manually.');
     } finally {
       setIsLocating(false);
     }
   };
+  
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result);
+        setPreviewImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const onSubmit = async (data) => {
-    // Combine all form data
+  const onSubmit = async (data: any) => {
+    let imageUrl = '';
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      formData.append('upload_preset', 'travel'); // Replace with your Cloudinary upload preset
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinary.config().cloud_name}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      imageUrl = result.secure_url;
+    }
+
     const formData = {
       ...data,
       languages: selectedLanguages,
       interests: selectedInterests,
-      image: previewImage
+      image: imageUrl
     };
 
-    // Here you would typically send this data to your API
     console.log(formData);
     
-    // For demo purposes, we'll just log it
-    alert('Profile submitted successfully!');
+    const session = await getSession();
+    console.log('Session:', session); // Check the contents of the session
+
+
+    const res = await fetch('/api/user/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.ok) {
+      router.push('/profile');
+    } else {
+      alert('Failed to submit profile.');
+    }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Complete Your Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Image Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="image">Profile Picture</Label>
-              <div className="flex items-center space-x-4">
-                <div className="relative h-24 w-24 rounded-full border-2 border-gray-300 flex items-center justify-center overflow-hidden">
-                  {previewImage ? (
-                    <Image src={previewImage} alt="Preview" className="h-full w-full object-cover" layout="fill" />
-                  ) : (
-                    <Camera className="h-8 w-8 text-gray-400" />
-                  )}
-                </div>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="max-w-xs"
-                />
-              </div>
-            </div>
-
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  {...register('name', { required: 'Name is required' })}
-                />
-                {errors.name && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{errors.name.message}</AlertDescription>
-                  </Alert>
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-4">Complete Your Profile</h1>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <label htmlFor="image" className="block text-sm font-medium">Profile Picture</label>
+            <div className="flex items-center space-x-4">
+              <div className="relative h-24 w-24 rounded-full border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+                {previewImage ? (
+                  <img src={previewImage} alt="Preview" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-gray-400">Upload</span>
                 )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  {...register('age', { 
-                    required: 'Age is required',
-                    min: { value: 13, message: 'Must be at least 13 years old' }
-                  })}
-                />
-                {errors.age && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{errors.age.message}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select onValueChange={(value: string) => setValue('gender', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    id="location"
-                    {...register('location')}
-                    value={location}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocation(e.target.value)}
-                  />
-                  <Button type="button" onClick={detectLocation} disabled={isLocating}>
-                    {isLocating ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <MapPin className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {locationError && (
-                  <Alert>
-                    <AlertDescription>{locationError}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </div>
-
-            {/* About */}
-            <div className="space-y-2">
-              <Label htmlFor="about">About Yourself</Label>
-              <Textarea
-                id="about"
-                {...register('about', { 
-                  required: 'Please write a short description about yourself',
-                  maxLength: { value: 500, message: 'Maximum 500 characters' }
-                })}
+              <input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="max-w-xs"
               />
-              {errors.about && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.about.message}</AlertDescription>
-                </Alert>
-              )}
             </div>
+          </div>
 
-            {/* Languages */}
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Languages</Label>
-              <div className="flex flex-wrap gap-2">
-                {languages.map(lang => (
-                  <Button
-                    key={lang}
-                    type="button"
-                    variant={selectedLanguages.includes(lang) ? "default" : "outline" as "default" | "outline"}
-                    onClick={() => {
-                      setSelectedLanguages(prev => 
-                        prev.includes(lang) 
-                          ? prev.filter(l => l !== lang)
-                          : [...prev, lang]
-                      );
-                    }}
-                  >
-                    {lang}
-                  </Button>
-                ))}
-              </div>
+              <label htmlFor="name" className="block text-sm font-medium">Full Name</label>
+              <input
+                id="name"
+                {...register('name', { required: 'Name is required' })}
+                className="block w-full p-2 border border-gray-300 rounded-md"
+              />
+              {errors.name && <p className="text-red-500">{errors.name.message}</p>}
             </div>
 
-            {/* Interests */}
             <div className="space-y-2">
-              <Label>Interests</Label>
-              <div className="flex flex-wrap gap-2">
-                {interests.map(interest => (
-                  <Button
-                    key={interest}
-                    type="button"
-                    variant={selectedInterests.includes(interest) ? "default" : "outline" as "default" | "outline"}
-                    onClick={() => {
-                      setSelectedInterests(prev => 
-                        prev.includes(interest) 
-                          ? prev.filter(i => i !== interest)
-                          : [...prev, interest]
-                      );
-                    }}
-                  >
-                    {interest}
-                  </Button>
-                ))}
-              </div>
+              <label htmlFor="age" className="block text-sm font-medium">Age</label>
+              <input
+                id="age"
+                type="number"
+                {...register('age', { 
+                  required: 'Age is required',
+                  min: { value: 13, message: 'Must be at least 13 years old' }
+                })}
+                className="block w-full p-2 border border-gray-300 rounded-md"
+              />
+              {errors.age && <p className="text-red-500">{errors.age.message}</p>}
             </div>
 
-            <Button type="submit" className="w-full">
-              Complete Profile
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            <div className="space-y-2">
+              <label htmlFor="gender" className="block text-sm font-medium">Gender</label>
+              <select
+                id="gender"
+                {...register('gender')}
+                className="block w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+                <option value="prefer-not-to-say">Prefer not to say</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="location" className="block text-sm font-medium">Location</label>
+              <div className="flex space-x-2">
+                <input
+                  id="location"
+                  {...register('location')}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="block w-full p-2 border border-gray-300 rounded-md"
+                />
+                <button type="button" onClick={detectLocation} className="p-2 bg-gray-300 rounded-md" disabled={isLocating}>
+                  {isLocating ? 'Locating...' : 'Detect'}
+                </button>
+              </div>
+              {locationError && <p className="text-red-500">{locationError}</p>}
+            </div>
+          </div>
+
+          {/* About */}
+          <div className="space-y-2">
+            <label htmlFor="about" className="block text-sm font-medium">About Yourself</label>
+            <textarea
+              id="about"
+              {...register('about', { 
+                required: 'Please write a short description about yourself',
+                maxLength: { value: 500, message: 'Maximum 500 characters' }
+              })}
+              className="block w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.about && <p className="text-red-500">{errors.about.message}</p>}
+          </div>
+
+          {/* Languages */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Languages</label>
+            <div className="flex flex-wrap gap-2">
+              {languages.map(lang => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => {
+                    setSelectedLanguages((prev: string[]) => 
+                      prev.includes(lang) 
+                        ? prev.filter(l => l !== lang)
+                        : [...prev, lang]
+                    );
+                  }}
+                  className={`p-2 rounded-md ${selectedLanguages.includes(lang) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Interests */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Interests</label>
+            <div className="flex flex-wrap gap-2">
+              {interests.map(interest => (
+                <button
+                  key={interest}
+                  type="button"
+                  onClick={() => {
+                    setSelectedInterests((prev: string[]) => 
+                      prev.includes(interest) 
+                        ? prev.filter(i => i !== interest)
+                        : [...prev, interest]
+                    );
+                  }}
+                  className={`p-2 rounded-md ${selectedInterests.includes(interest) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                >
+                  {interest}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded-md">
+            Complete Profile
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
