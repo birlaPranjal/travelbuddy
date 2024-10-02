@@ -1,9 +1,8 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Cloudinary } from 'cloudinary-core';
-import { getSession } from 'next-auth/react';
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 const cloudinary = new Cloudinary({ cloud_name: 'travelee', secure: true });
 
@@ -19,7 +18,12 @@ const interests = [
 
 export default function NewUserPage() {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
   const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{ latitude: string; longitude: string }>({
+    latitude: '',
+    longitude: ''
+  });
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [previewImage, setPreviewImage] = useState('');
@@ -37,7 +41,13 @@ export default function NewUserPage() {
     }
   });
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const detectLocation = async () => {
+    if (!isMounted) return;
+    
     setIsLocating(true);
     setLocationError('');
   
@@ -47,21 +57,20 @@ export default function NewUserPage() {
       });
   
       const { latitude, longitude } = (position as GeolocationPosition).coords;
-      setLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
-      setValue('location', `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
-      console.log(latitude, longitude);
-      // Call OpenCage reverse geocoding API
+      setCoordinates({
+        latitude: latitude.toFixed(6),
+        longitude: longitude.toFixed(6)
+      });
+      
       const response = await fetch(
         `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=dacf037a4ac84e9ebfe82798e50cb633`
       );
       const data = await response.json();
-      console.log(data);
   
       if (data.results && data.results.length > 0) {
-        const areaName = data.results[0].formatted; // Get formatted address
-        setLocation(`${areaName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
-        // setLocation(data.results[0].formatted);
-        setValue('location', `${areaName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
+        const areaName = data.results[0].formatted;
+        setLocation(areaName);
+        setValue('location', areaName);
       }
     } catch {
       setLocationError('Failed to detect location. Please enter manually.');
@@ -69,10 +78,40 @@ export default function NewUserPage() {
       setIsLocating(false);
     }
   };
-  
+
+  const handleManualLocationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isMounted) return;
+    
+    const manualLocation = e.target.value;
+    setLocation(manualLocation);
+    setValue('location', manualLocation);
+    
+    if (manualLocation.length > 3) {
+      try {
+        const response = await fetch(
+          `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(manualLocation)}&key=dacf037a4ac84e9ebfe82798e50cb633`
+        );
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+          const { lat, lng } = data.results[0].geometry;
+          setCoordinates({
+            latitude: lat.toFixed(6),
+            longitude: lng.toFixed(6)
+          });
+        }
+      } catch (error) {
+        console.error('Error geocoding manual location:', error);
+      }
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files[0];
+    if (!isMounted) return;
+    
+    const files = e.target.files;
+    if (!files) return;
+    const file = files[0];
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
@@ -83,15 +122,23 @@ export default function NewUserPage() {
     }
   };
 
-  const onSubmit = async (data: any) => {
+  interface FormData {
+    name: string;
+    age: string;
+    gender: string;
+    about: string;
+    location: string;
+  }
+
+  const onSubmit = async (data: FormData) => {
     let imageUrl = '';
 
     if (imageFile) {
       const formData = new FormData();
       formData.append('file', imageFile);
-      formData.append('upload_preset', 'travel'); // Replace with your Cloudinary upload preset
+      formData.append('upload_preset', 'travel');
 
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinary.config().cloud_name}/image/upload`, {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinary.cloud_name}/image/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -100,17 +147,17 @@ export default function NewUserPage() {
       imageUrl = result.secure_url;
     }
 
-    const formData = {
+    const formDataWithCoordinates = {
       ...data,
       languages: selectedLanguages,
       interests: selectedInterests,
-      image: imageUrl
+      image: imageUrl,
+      coordinates: coordinates || { 
+        latitude: coordinates.latitude || '',
+        longitude: coordinates.longitude || ''
+      }
+      
     };
-
-    console.log(formData);
-    
-    const session = await getSession();
-    console.log('Session:', session); // Check the contents of the session
 
 
     const res = await fetch('/api/user/profile', {
@@ -118,7 +165,7 @@ export default function NewUserPage() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(formDataWithCoordinates),
     });
 
     if (res.ok) {
@@ -127,6 +174,10 @@ export default function NewUserPage() {
       alert('Failed to submit profile.');
     }
   };
+
+  if (!isMounted) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -139,7 +190,7 @@ export default function NewUserPage() {
             <div className="flex items-center space-x-4">
               <div className="relative h-24 w-24 rounded-full border-2 border-gray-300 flex items-center justify-center overflow-hidden">
                 {previewImage ? (
-                  <img src={previewImage} alt="Preview" className="h-full w-full object-cover" />
+                  <img src={previewImage} alt="Preview" className="h-full w-full object-cover" layout="fill" />
                 ) : (
                   <span className="text-gray-400">Upload</span>
                 )}
@@ -202,14 +253,24 @@ export default function NewUserPage() {
                   id="location"
                   {...register('location')}
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={handleManualLocationChange}
                   className="block w-full p-2 border border-gray-300 rounded-md"
                 />
-                <button type="button" onClick={detectLocation} className="p-2 bg-gray-300 rounded-md" disabled={isLocating}>
+                <button 
+                  type="button" 
+                  onClick={detectLocation} 
+                  className="p-2 bg-gray-300 rounded-md"
+                  disabled={isLocating}
+                >
                   {isLocating ? 'Locating...' : 'Detect'}
                 </button>
               </div>
               {locationError && <p className="text-red-500">{locationError}</p>}
+              {coordinates.latitude && coordinates.longitude && (
+                <p className="text-sm text-gray-500">
+                  Coordinates: {coordinates.latitude}, {coordinates.longitude}
+                </p>
+              )}
             </div>
           </div>
 
@@ -236,13 +297,15 @@ export default function NewUserPage() {
                   key={lang}
                   type="button"
                   onClick={() => {
-                    setSelectedLanguages((prev: string[]) => 
+                    setSelectedLanguages(prev => 
                       prev.includes(lang) 
                         ? prev.filter(l => l !== lang)
                         : [...prev, lang]
                     );
                   }}
-                  className={`p-2 rounded-md ${selectedLanguages.includes(lang) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  className={`p-2 rounded-md ${
+                    selectedLanguages.includes(lang) ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                  }`}
                 >
                   {lang}
                 </button>
@@ -259,13 +322,15 @@ export default function NewUserPage() {
                   key={interest}
                   type="button"
                   onClick={() => {
-                    setSelectedInterests((prev: string[]) => 
+                    setSelectedInterests(prev => 
                       prev.includes(interest) 
                         ? prev.filter(i => i !== interest)
                         : [...prev, interest]
                     );
                   }}
-                  className={`p-2 rounded-md ${selectedInterests.includes(interest) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  className={`p-2 rounded-md ${
+                    selectedInterests.includes(interest) ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                  }`}
                 >
                   {interest}
                 </button>

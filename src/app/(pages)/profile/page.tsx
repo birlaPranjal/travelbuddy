@@ -56,7 +56,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 md:max-w-4xl">
       <div className="bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-4">Profile</h1>
         

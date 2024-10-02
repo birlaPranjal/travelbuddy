@@ -9,8 +9,8 @@ type NavLink = {
       path: '/',
     },
     {
-      title: 'FAQ',
-      path: '/#Faqs',
+      title: 'Chat',
+      path: '/chatbot',
     },
     
   ];

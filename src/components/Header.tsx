@@ -5,7 +5,9 @@ import navLinks from "@/assets/link";
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { SiAltiumdesigner } from "react-icons/si";
+import Image from "next/image";
+import Logo from "@/assets/logo.svg";
+
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,32 +16,27 @@ const Header = () => {
     setIsOpen(!isOpen);
   };
   return (
-    <div className="py-4 shadow-md h-[3.8rem] top-0 fixed w-screen z-50 bg-black text-white pt-5">
+    <div className="pt-3 shadow-md h-[4rem] top-0 fixed w-screen z-50 bg-dark text-white">
       <div className="w-10/12  mx-auto flex items-center justify-between">
-      <Link href="/" className="w-10/12 mx-auto md:mx-0 md:w-[60%]">
-            <div className='text-4xl  flex'><SiAltiumdesigner />Designity</div>
-            </Link>
-        <nav className=" gap-5 hidden sm:flex sm:mr-[60px] text-xl ">
+        <Link href="/" className="w-10/12 mx-auto md:mx-0 md:w-[60%]">
+          <div className="text-4xl  flex">
+            <Image src={Logo} width={40} height={40} alt="logo" className="mr-3" />
+            TravelBuddy
+          </div>
+        </Link>
+        <nav className="hidden sm:flex min-w-[50vw] justify-evenly text-xl ">
           {navLinks?.map((link) => (
             <li className="list-none" key={link.title}>
               <Link href={link.path}>{link.title}</Link>
             </li>
           ))}
-          {session && (
-            <Link href="/profile">
-              Profile
-            </Link>
-          )}
-          {!session && (
-            <Link href="/sign-in">
-              Sign In
-            </Link>
-          )}
+          {session && <Link href="/find-people">Find People</Link>}
+          {session && <Link href="/destinations">Destinations</Link>}
+          {session && <Link href="/profile">Profile</Link>}
+          {!session && <Link href="/sign-in">Sign In</Link>}
           {session && (
             <>
-              <Link href="/signout">
-              Sign Out
-            </Link>
+              <Link href="/signout">Sign Out</Link>
             </>
           )}
         </nav>
@@ -82,23 +79,17 @@ const Header = () => {
                     <Link href={link.path}>{link.title}</Link>
                   </li>
                 ))}
+                {session && <Link href="/profile">Find People</Link>}
+                {session && <Link href="/profile">Destinations</Link>}
+
+                {session && <Link href="/profile">Profile</Link>}
+
+                {!session && <Link href="/sign-in">Sign In</Link>}
                 {session && (
-            <Link href="/profile">
-              Profile
-            </Link>
-          )}
-          {!session && (
-            <Link href="/sign-in">
-              Sign In
-            </Link>
-          )}
-          {session && (
-            <>
-              <Link href="/signout">
-              Sign Out
-            </Link>
-            </>
-          )}
+                  <>
+                    <Link href="/signout">Sign Out</Link>
+                  </>
+                )}
               </nav>
             </div>
           )}

@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   age: { type: Number },
   gender: { type: String },
   location: { type: String },
+  latitude: { type: Number }, // Separate latitude field
+  longitude: { type: Number }, // Separate longitude field
   about: { type: String },
   languages: [{ type: String }],
   interests: [{ type: String }],

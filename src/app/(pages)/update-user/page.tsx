@@ -8,45 +8,27 @@ import { useRouter } from "next/navigation";
 const cloudinary = new Cloudinary({ cloud_name: "travelee", secure: true });
 
 const languages = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Chinese",
-  "Japanese",
-  "Korean",
-  "Arabic",
-  "Russian",
-  "Portuguese",
-  "Italian",
-  "Hindi",
+  "English", "Spanish", "French", "German", "Chinese", "Japanese",
+  "Korean", "Arabic", "Russian", "Portuguese", "Italian", "Hindi"
 ];
 
 const interests = [
-  "Reading",
-  "Writing",
-  "Music",
-  "Movies",
-  "Sports",
-  "Cooking",
-  "Travel",
-  "Photography",
-  "Art",
-  "Technology",
-  "Gaming",
-  "Fitness",
+  "Reading", "Writing", "Music", "Movies", "Sports", "Cooking",
+  "Travel", "Photography", "Art", "Technology", "Gaming", "Fitness"
 ];
 
 export default function UpdateUserPage() {
   const router = useRouter();
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{latitude: string, longitude: string} | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [locationError, setLocationError] = useState("");
-  const [previewImage, setPreviewImage] = useState("");
+  
+  const [locationError, setLocationError] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  
+
   const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
       name: "",
@@ -57,27 +39,33 @@ export default function UpdateUserPage() {
     },
   });
 
-  // Fetch existing user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       const session = await getSession();
       if (!session) {
-        router.push("/login"); // Redirect if not logged in
+        router.push("/login");
         return;
       }
 
       const response = await fetch(`/api/user/profile`);
       if (response.ok) {
-        const Tdata = await response.json();
-        const data=Tdata.user;
+        const userData = await response.json();
+        const data = userData.user;
         setValue("name", data.name || "");
         setValue("age", data.age || "");
         setValue("gender", data.gender || "");
         setValue("about", data.about || "");
+        setLocation(data.location || "");
         setValue("location", data.location || "");
         setSelectedLanguages(data.languages || []);
-        setSelectedInterests(data.interests || "");
+        setSelectedInterests(data.interests || []);
         setPreviewImage(data.image || "");
+        if (data.coordinates) {
+          setCoordinates({
+            latitude: data.coordinates.latitude || "",
+            longitude: data.coordinates.longitude || ""
+          });
+        }
       } else {
         console.error("Failed to fetch user data.");
       }
@@ -85,6 +73,31 @@ export default function UpdateUserPage() {
 
     fetchUserData();
   }, [setValue, router]);
+
+  const handleManualLocationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const manualLocation = e.target.value;
+    setLocation(manualLocation);
+    setValue("location", manualLocation);
+    
+    if (manualLocation.length > 3) {
+      try {
+        const response = await fetch(
+          `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(manualLocation)}&key=dacf037a4ac84e9ebfe82798e50cb633`
+        );
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+          const { lat, lng } = data.results[0].geometry;
+          setCoordinates({
+            latitude: lat.toFixed(6),
+            longitude: lng.toFixed(6)
+          });
+        }
+      } catch (error) {
+        console.error('Error geocoding manual location:', error);
+      }
+    }
+  };
 
   const detectLocation = async () => {
     setIsLocating(true);
@@ -96,9 +109,11 @@ export default function UpdateUserPage() {
       });
 
       const { latitude, longitude } = (position as GeolocationPosition).coords;
-      setLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
-      setValue("location", `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
-
+      setCoordinates({
+        latitude: latitude.toFixed(6),
+        longitude: longitude.toFixed(6)
+      });
+      
       // Call OpenCage reverse geocoding API
       const response = await fetch(
         `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=dacf037a4ac84e9ebfe82798e50cb633`
@@ -106,9 +121,9 @@ export default function UpdateUserPage() {
       const data = await response.json();
 
       if (data.results && data.results.length > 0) {
-        const areaName = data.results[0].formatted; // Get formatted address
-        setLocation(`${areaName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
-        setValue("location", `${areaName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
+        const areaName = data.results[0].formatted;
+        setLocation(areaName);
+        setValue("location", areaName);
       }
     } catch {
       setLocationError("Failed to detect location. Please enter manually.");
@@ -118,7 +133,9 @@ export default function UpdateUserPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files[0];
+    const files = e.target.files;
+    if (!files) return;
+    const file = files[0];
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
@@ -129,14 +146,21 @@ export default function UpdateUserPage() {
     }
   };
 
-  const onSubmit = async (data: any) => {
+  interface FormData {
+    name: string;
+    age: string;
+    gender: string;
+    about: string;
+    location: string;
+  }
+
+  const onSubmit = async (data: FormData) => {
     let imageUrl = previewImage;
 
-    // Only upload new image if a new file is selected
     if (imageFile) {
       const formData = new FormData();
       formData.append("file", imageFile);
-      formData.append("upload_preset", "travel"); // Replace with your Cloudinary upload preset
+      formData.append("upload_preset", "travel");
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudinary.config().cloud_name}/image/upload`,
@@ -150,22 +174,23 @@ export default function UpdateUserPage() {
       imageUrl = result.secure_url;
     }
 
-    const formData = {
+    const formDataWithCoordinates = {
       ...data,
       languages: selectedLanguages,
       interests: selectedInterests,
       image: imageUrl,
+      coordinates: coordinates || { 
+        latitude: coordinates.latitude || '',
+        longitude: coordinates.longitude || ''
+      }
     };
 
-    const session = await getSession();
-    console.log("Session:", session); // Check the contents of the session
-
     const res = await fetch("/api/user/profile", {
-      method: "PUT", // Use PUT to update user data
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(formDataWithCoordinates),
     });
 
     if (res.ok) {
@@ -259,19 +284,24 @@ export default function UpdateUserPage() {
                   id="location"
                   {...register("location")}
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={handleManualLocationChange}
                   className="block w-full p-2 border border-gray-300 rounded-md"
                 />
                 <button
                   type="button"
-                  className="p-2 bg-blue-500 text-white rounded-md"
                   onClick={detectLocation}
+                  className="p-2 bg-blue-500 text-white rounded-md"
                   disabled={isLocating}
                 >
                   {isLocating ? "Locating..." : "Detect"}
                 </button>
               </div>
               {locationError && <p className="text-red-500">{locationError}</p>}
+              {coordinates && (
+                <p className="text-sm text-gray-500">
+                  Coordinates: {coordinates.latitude}, {coordinates.longitude}
+                </p>
+              )}
             </div>
           </div>
 
