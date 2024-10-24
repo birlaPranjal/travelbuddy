@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   location: { type: String },
   latitude: { type: Number }, // Separate latitude field
   longitude: { type: Number }, // Separate longitude field
+  phone: { type: String },
   about: { type: String },
   languages: [{ type: String }],
   interests: [{ type: String }],

@@ -74,6 +74,7 @@ export default function ProfilePage() {
         {/* Display Profile Information */}
         <div className="space-y-4">
           <p><strong>Name:</strong> {profile.name}</p>
+          <p><strong>Phone:</strong> {profile.phone}</p>
           <p><strong>Age:</strong> {profile.age}</p>
           <p><strong>Gender:</strong> {profile.gender}</p>
           <p><strong>Location:</strong> {profile.location}</p>

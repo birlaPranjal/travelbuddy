@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 const cloudinary = new Cloudinary({ cloud_name: 'travelee', secure: true });
 
 const languages = [
-  'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese',
-  'Korean', 'Arabic', 'Russian', 'Portuguese', 'Italian', 'Hindi'
+  'English', 'Hindi', 'French', 'German', 'Urdu','Arabic', 'Russian'
 ];
 
 const interests = [
@@ -38,6 +37,7 @@ export default function NewUserPage() {
       gender: '',
       about: '',
       location: '',
+      phone: ''
     }
   });
 
@@ -128,6 +128,7 @@ export default function NewUserPage() {
     gender: string;
     about: string;
     location: string;
+    phone: string;
   }
 
   const onSubmit = async (data: FormData) => {
@@ -158,7 +159,6 @@ export default function NewUserPage() {
       }
       
     };
-
 
     const res = await fetch('/api/user/profile', {
       method: 'POST',
@@ -272,6 +272,19 @@ export default function NewUserPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Phone Number Section */}
+          <div className="space-y-2">
+            <label htmlFor="phone" className="block text-sm font-medium">
+              Phone Number (WhatsApp)
+            </label>
+            <input 
+              id="phone"
+              {...register("phone", { required: 'Phone number is required' })}
+              className="block w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.phone && <p className="text-red-500">{errors.phone.message}</p>}
           </div>
 
           {/* About */}

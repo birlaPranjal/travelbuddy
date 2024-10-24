@@ -19,12 +19,12 @@ async function handleUserData(formData: any, session: any) {
     location: formData.location,
     latitude: lat,  // Store latitude as a separate field
     longitude: lon,  // Store longitude as a separate field
+    phone: formData.phone, // No need to parse as a number
     about: formData.about,
     languages: formData.languages,
     interests: formData.interests,
     image: formData.image,
   };
-
   // Log to verify that coordinates are being passed correctly
   console.log("Coordinates being saved:", { latitude: lat, longitude: lon });
 

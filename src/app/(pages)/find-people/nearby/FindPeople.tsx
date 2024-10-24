@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 
 const FindPeople = ({ currentUser }) => {
   const [people, setPeople] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0); // Track swipe direction for animations
+  const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
     fetchNearbyPeople();
@@ -42,6 +44,12 @@ const FindPeople = ({ currentUser }) => {
       setCurrentIndex((prevIndex) => prevIndex + 1); // Move to next person
       setDirection(0); // Reset direction
     }, 300); // Ensure delay matches animation duration
+  };
+
+  const handleWhatsAppClick = (phoneNumber) => {
+    // Redirect to WhatsApp chat with the person
+    const whatsappUrl = `https://wa.me/+91${phoneNumber}`;
+    window.open(whatsappUrl, '_blank'); // Open in a new tab
   };
 
   if (people.length === 0) {
@@ -84,7 +92,7 @@ const FindPeople = ({ currentUser }) => {
             <div className="p-4">
               <h2 className="text-2xl font-bold">{currentPerson.name}, {currentPerson.age}</h2>
               <p className="text-gray-600">{currentPerson.location}</p>
-              <p className="text-gray-600">{currentPerson.distance}km</p>
+              <p className="text-gray-600">{currentPerson.distance} km</p>
               <p className="mt-2">{currentPerson.about}</p>
               {currentPerson.interests && currentPerson.interests.length > 0 && (
                 <div className="mt-2">
@@ -111,6 +119,12 @@ const FindPeople = ({ currentUser }) => {
                 className="bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors"
               >
                 ♥
+              </button>
+              <button
+                onClick={() => handleWhatsAppClick(currentPerson.phone)} // Redirect to WhatsApp
+                className="bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
+              >
+                WhatsApp
               </button>
             </div>
           </div>

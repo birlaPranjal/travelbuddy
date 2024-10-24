@@ -36,6 +36,7 @@ export default function UpdateUserPage() {
       gender: "",
       about: "",
       location: "",
+      phone:"",
     },
   });
 
@@ -55,6 +56,7 @@ export default function UpdateUserPage() {
         setValue("age", data.age || "");
         setValue("gender", data.gender || "");
         setValue("about", data.about || "");
+        setValue("phone", data.phone || "")
         setLocation(data.location || "");
         setValue("location", data.location || "");
         setSelectedLanguages(data.languages || []);
@@ -152,6 +154,7 @@ export default function UpdateUserPage() {
     gender: string;
     about: string;
     location: string;
+    phone: string;
   }
 
   const onSubmit = async (data: FormData) => {
@@ -180,8 +183,8 @@ export default function UpdateUserPage() {
       interests: selectedInterests,
       image: imageUrl,
       coordinates: coordinates || { 
-        latitude: coordinates.latitude || '',
-        longitude: coordinates.longitude || ''
+        latitude: '',
+        longitude: ''
       }
     };
 
@@ -303,6 +306,18 @@ export default function UpdateUserPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Phone Number Section */}
+          <div className="space-y-2">
+            <label htmlFor="about" className="block text-sm font-medium">
+              Phone Number(Whatsapp)
+            </label>
+            <input 
+              id="phone"
+              {...register("phone")}
+              className="block w-full p-2 border border-gray-300 rounded-md"
+            />
           </div>
 
           {/* About Section */}
