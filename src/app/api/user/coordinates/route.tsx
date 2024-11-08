@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import dbConnect from '@/app/lib/dbConnect';
 import UserModel from '@/app/model/User';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await dbConnect();
     

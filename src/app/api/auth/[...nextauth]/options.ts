@@ -91,10 +91,10 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                token.isVerified = user.isVerified;
-                token.isAcceptingMessages = user.isAcceptingMessages;
-                token.username = user.username;
-                token.isNewUser = user.isNewUser;
+                token.isVerified = (user as typeof token).isVerified;
+                token.isAcceptingMessages = (user as typeof token).isAcceptingMessages;
+                token.username = (user as typeof token).username;
+                token.isNewUser = (user as typeof token).isNewUser;
             }
             return token;
         },

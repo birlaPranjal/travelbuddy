@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import navLinks from "@/assets/link";
+import navLinks from "../assets/link";
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";

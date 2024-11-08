@@ -3,17 +3,20 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/autoplay";
 
+
 // Swiper modules
 import { Autoplay } from "swiper/modules";
 
 const HomeImageSwiper = () => {
   const images = [
-    "https://images.pexels.com/photos/7213609/pexels-photo-7213609.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "https://images.pexels.com/photos/7648044/pexels-photo-7648044.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "https://images.pexels.com/photos/7414272/pexels-photo-7414272.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "https://images.pexels.com/photos/5711367/pexels-photo-5711367.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "https://images.pexels.com/photos/5257457/pexels-photo-5257457.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "https://images.pexels.com/photos/18536260/pexels-photo-18536260/free-photo-of-a-typewriter-with-the-words-neighborhood-networks-on-it.jpeg?auto=compress&cs=tinysrgb&w=800",
+    '/portraits/22.svg' , 
+    '/portraits/11.svg' , 
+    '/portraits/1.svg' , 
+    '/portraits/2.svg' , 
+    '/portraits/3.svg' , 
+    '/portraits/4.svg' , 
+    '/portraits/5.svg' , 
+    '/portraits/6.svg' , 
   ];
 
   return (

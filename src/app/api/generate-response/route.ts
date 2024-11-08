@@ -3,9 +3,22 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI('AIzaSyCeTU57XCzSh5ik4sJV4yPf-Pe9u7qgSpA');
 
-export async function POST(req) {
+interface RequestBody {
+  prompt: string;
+}
+
+interface GenerationConfig {
+  maxOutputTokens: number;
+  temperature: number;
+}
+
+interface Chat {
+  sendMessage: (messages: { text: string }[]) => Promise<{ response: { text: () => string } }>;
+}
+
+export async function POST(req: Request): Promise<Response> {
   try {
-    const { prompt } = await req.json();
+    const { prompt }: RequestBody = await req.json();
     
     if (!prompt) {
       return Response.json(
@@ -18,7 +31,7 @@ export async function POST(req) {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Create chat with strong travel focus
-    const chat = model.startChat({
+    const chat: Chat = model.startChat({
       history: [
         {
           role: "user",
@@ -32,7 +45,7 @@ export async function POST(req) {
       generationConfig: {
         maxOutputTokens: 500,
         temperature: 0.9,
-      },
+      } as GenerationConfig,
     });
 
     // Send message and get response
@@ -41,12 +54,12 @@ export async function POST(req) {
     const responseText = response.text();
     
     return Response.json({ text: responseText });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Gemini API Error:', error);
     return Response.json(
       { 
         error: 'Failed to fetch AI response', 
-        details: error.message 
+        details: "error.message" 
       }, 
       { status: 500 }
     );

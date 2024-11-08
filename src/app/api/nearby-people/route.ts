@@ -1,8 +1,8 @@
 import dbConnect from '@/app/lib/dbConnect';
 import UserModel from '@/app/model/User';
 
-// Haversine formula to calculate distance
-function calculateDistance(lat1, lon1, lat2, lon2) {
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -14,7 +14,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c; // Distance in km
 }
 
-export async function POST(req) {
+export async function POST(req: Request) {
   try {
     // Parse the incoming request
     const { latitude, longitude, userId } = await req.json();
@@ -54,6 +54,9 @@ export async function POST(req) {
       location: user.location,
       about: user.about,
       interests: user.interests,
+      travelStyles: user.travelStyles,
+      phone:user.phone,
+      instagram: user.instagram,
       image: user.image,
       distance: Math.round(user.distance) // Round the distance to nearest km
     }));
@@ -65,3 +68,5 @@ export async function POST(req) {
     return new Response(JSON.stringify({ error: 'Failed to fetch nearby people' }), { status: 500 });
   }
 }
+
+

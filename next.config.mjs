@@ -1,7 +1,7 @@
 /** @type {import('postcss-load-config').Config} */
 const config = {
     images: {
-      domains: ['upload.wikimedia.org'],
+      domains: ['upload.wikimedia.org' , 'res.cloudinary.com'],
     },
   };
   

@@ -2,7 +2,18 @@
 import React, { useState, useEffect } from 'react';
 
 export default function TouristPlaces() {
-  const [places, setPlaces] = useState([]);
+  interface Place {
+    id: number;
+    name: string;
+    type: string;
+    lat: number | undefined;
+    lon: number | undefined;
+    description: string;
+    address: string;
+    image: string | null;
+  }
+
+  const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userLocation, setUserLocation] = useState({ latitude: 0, longitude: 0 });
@@ -24,7 +35,7 @@ export default function TouristPlaces() {
           setError(data.error || 'Failed to fetch user coordinates');
           setLoading(false);
         }
-      } catch (err) {
+      } catch {
         setError('Error fetching user coordinates');
         setLoading(false);
       }
@@ -76,9 +87,40 @@ export default function TouristPlaces() {
 
         const data = await response.json();
 
-        const processedPlaces = data.elements
-          .filter(element => element.tags && element.tags.name)
-          .map(element => {
+        interface Place {
+          id: number;
+          name: string;
+          type: string;
+          lat: number | undefined;
+          lon: number | undefined;
+          description: string;
+          address: string;
+          image: string | null;
+        }
+
+        interface OverpassElement {
+          id: number;
+          tags: {
+            name?: string;
+            historic?: string;
+            tourism?: string;
+            waterway?: string;
+            natural?: string;
+            water?: string;
+            description?: string;
+            'addr:street'?: string;
+          };
+          lat?: number;
+          lon?: number;
+          center?: {
+            lat: number;
+            lon: number;
+          };
+        }
+
+        const processedPlaces: Place[] = data.elements
+          .filter((element: OverpassElement) => element.tags && element.tags.name)
+          .map((element: OverpassElement) => {
             let type = '';
             if (element.tags.historic) type = 'Historical Place';
             if (element.tags.historic === 'castle') type = 'Castle';
@@ -89,7 +131,7 @@ export default function TouristPlaces() {
 
             return {
               id: element.id,
-              name: element.tags.name,
+              name: element.tags.name!,
               type: type,
               lat: element.lat || (element.center && element.center.lat),
               lon: element.lon || (element.center && element.center.lon),
@@ -101,8 +143,8 @@ export default function TouristPlaces() {
 
         setPlaces(processedPlaces);
         setLoading(false);
-      } catch (err) {
-        setError(err.message);
+      } catch{
+        setError("Failed to fetch tourist places");
         setLoading(false);
       }
     };
@@ -112,7 +154,8 @@ export default function TouristPlaces() {
     }
   }, [userLocation]);
 
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): string => {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;

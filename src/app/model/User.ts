@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
   isNewUser: { type: Boolean, default: false },
   isAcceptingMessages: { type: Boolean, default: true },
   username: { type: String },
+  instagram:{ type: String },
+  travelStyles: [{ type: String }],
 }, { timestamps: true });
 
 const UserModel = mongoose.models.users || mongoose.model("users", userSchema);

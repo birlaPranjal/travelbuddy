@@ -22,8 +22,8 @@ export default function Page() {
   }, [router]);
 
   return (
-    <div className="bg-dark h-screen  py-28">
-      <p className='text-5xl text-center'>Signing out...</p>
+    <div className="bg-dark h-screen  py-28 -mt-10">
+      <p className='text-5xl text-center text-white'>Signing out...</p>
     </div>
   );
 }

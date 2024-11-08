@@ -6,7 +6,14 @@ export default function DestinationSearch() {
   const { data: session, status } = useSession();
   const [destination, setDestination] = useState('');
   const [travelDate, setTravelDate] = useState('');
-  const [matchedPeople, setMatchedPeople] = useState([]);
+  interface Person {
+    email: string;
+    name: string;
+    location?: string;
+    interests?: string[];
+  }
+
+  const [matchedPeople, setMatchedPeople] = useState<Person[]>([]);
 
   // If session is loading, return loading state
   if (status === 'loading') {

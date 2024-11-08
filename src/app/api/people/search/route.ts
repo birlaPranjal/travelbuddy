@@ -3,10 +3,16 @@ import dbConnect from '@/app/lib/dbConnect';
 import DestinationModel from '@/app/model/Destination';
 import UserModel from '@/app/model/User';
 
-export async function POST(req) {
+interface PostRequestBody {
+  email: string;
+  destination: string;
+  travelDate: string;
+}
+
+export async function POST(req: Request): Promise<Response> {
   try {
     await dbConnect();
-    const { email, destination, travelDate } = await req.json(); // Include travelDate
+    const { email, destination, travelDate }: PostRequestBody = await req.json();
 
     // Save the destination search with the travel date
     await DestinationModel.create({

@@ -63,21 +63,21 @@ export default function FaqSection() {
   return (
     <section className="w-full bg-primary text-white py-10 px-4" id="faq-section">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-4xl font-bold text-black text-center mb-12">Frequently Asked Questions</h2>
+        <h2 className="text-4xl font-bold  text-center mb-12">Frequently Asked Questions</h2>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
             <div key={index} className="bg-primary border-secondary border rounded-lg shadow-lg overflow-hidden">
               <h3 
-                className="flex justify-between items-center text-xl font-bold text-black cursor-pointer p-4 transition-colors duration-200 hover:bg-secondary"
+                className="flex justify-between items-center text-xl font-bold  cursor-pointer p-4 transition-colors duration-200 hover:bg-secondary"
                 onClick={() => toggleQuestion(index)}
               >
                 {faq.question}
-                <span className="text-black">
+                <span className="">
                   {openIndex === index ? <FaMinus /> : <FaPlus />}
                 </span>
               </h3>
               <div 
-                className={`p-4 text-black ${openIndex === index ? 'block' : 'hidden'}`}
+                className={`p-4  ${openIndex === index ? 'block' : 'hidden'}`}
               >
                 <p>{faq.answer}</p>
               </div>
