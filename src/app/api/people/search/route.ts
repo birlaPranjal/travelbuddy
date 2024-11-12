@@ -6,27 +6,31 @@ import UserModel from '@/app/model/User';
 interface PostRequestBody {
   email: string;
   destination: string;
-  travelDate: string;
+  dateFrom: string;
+  dateTo: string;
+  budgetRange: string;
 }
 
 export async function POST(req: Request): Promise<Response> {
   try {
     await dbConnect();
-    const { email, destination, travelDate }: PostRequestBody = await req.json();
+    const { email, destination, dateFrom, dateTo, budgetRange }: PostRequestBody = await req.json();
 
-    // Save the destination search with the travel date
     await DestinationModel.create({
       email,
       searchedDestination: destination,
-      travelDate: new Date(travelDate),  // Convert to Date object
+      dateFrom: new Date(dateFrom),
+      dateTo: new Date(dateTo),
+      budgetRange,
     });
 
-    // Find people who live in the destination or have searched for it
     const matchingPeople = await UserModel.find({
       $or: [
-        { location: destination },  // People who live at the destination
-        { searchedDestination: destination },  // People who searched for the destination
+        { location: destination },
+        { searchedDestination: destination },
       ],
+      budgetRange: { $lte: budgetRange },
+      travelDate: { $gte: new Date(dateFrom), $lte: new Date(dateTo) },
     });
 
     return NextResponse.json({ people: matchingPeople });

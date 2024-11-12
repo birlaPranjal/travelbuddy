@@ -33,7 +33,7 @@ const FindPeople = ({ currentUser }: { currentUser: User }) => {
 
   useEffect(() => {
     fetchNearbyPeople();
-  }, []);
+  });
 
   const fetchNearbyPeople = async () => {
     try {
