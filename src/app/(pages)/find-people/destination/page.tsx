@@ -1,101 +1,135 @@
 'use client';
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { motion } from 'framer-motion';
+import { Calendar, MapPin, DollarSign, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default function DestinationSearch() {
-  const { data: session, status } = useSession();
-  const [destination, setDestination] = useState('');
-  const [travelDate, setTravelDate] = useState('');
-  interface Person {
-    email: string;
-    name: string;
-    location?: string;
-    interests?: string[];
-  }
+interface TravelPlan {
+  destination: string;
+  fromDate: string;
+  toDate: string;
+  budget: number;
+}
 
-  const [matchedPeople, setMatchedPeople] = useState<Person[]>([]);
+export default function DestinationSearchPage() {
+  const router = useRouter();
+  const [searchParams, setSearchParams] = useState<TravelPlan>({
+    destination: '',
+    fromDate: '',
+    toDate: '',
+    budget: 0
+  });
+  const [loading, setLoading] = useState(false);
 
-  // If session is loading, return loading state
-  if (status === 'loading') {
-    return <div>Loading...</div>;
-  }
-
-  // If user is not authenticated, return a message
-  if (!session) {
-    return <div>Please sign in to search for people.</div>;
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const email = session?.user?.email; // Fetch email from session
-
-    if (!email) {
-      console.error('User is not authenticated.');
-      return;
-    }
-
-    // Send destination search request to API
-    const response = await fetch('/api/people/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, destination, travelDate }),  // Include travel date
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      setMatchedPeople(data.people);
-    } else {
-      console.error('Error finding people:', data.error);
+    setLoading(true);
+    try {
+      const response = await fetch('/api/destination-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(searchParams),
+      });
+      const data = await response.json();
+      console.log('Search results:', data);
+      router.push(`/find-people/destination/results`);
+    } catch (error) {
+      console.error('Error creating travel plan:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-primary min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-8">Find People for a Destination</h1>
-
-      {/* Destination search form */}
-      <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-4">
-        <input
-          type="text"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-          placeholder="Enter destination"
-          className="p-2 border rounded-lg"
-          required
-        />
-
-        <input
-          type="date"
-          value={travelDate}
-          onChange={(e) => setTravelDate(e.target.value)}
-          className="p-2 border rounded-lg"
-          required
-        />
-
-        <button type="submit" className="bg-secondary hover:bg-secondary-dark text-white py-2 px-6 rounded-lg">
-          Search
-        </button>
-      </form>
-
-      {/* Display matched people */}
-      <div className="mt-8">
-        {matchedPeople.length > 0 ? (
-          <div className="flex flex-col items-center space-y-4">
-            <h2 className="text-2xl font-bold">People who live at or want to go to {destination}</h2>
-            {matchedPeople.map((person) => (
-              <div key={person.email} className="bg-white p-4 rounded-lg shadow-lg">
-                <p>Name: {person.name}</p>
-                <p>Location: {person.location || 'N/A'}</p>
-                <p>Interests: {person.interests?.join(', ') || 'None'}</p>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gray-900 -mt-12">
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-white mb-4 mt-20">Find Travel Companions by Destination</h1>
+            <p className="text-gray-400 text-lg">Connect with travelers heading to your dream destination</p>
           </div>
-        ) : (
-          <p>No matches found for {destination}.</p>
-        )}
+
+          <form onSubmit={handleSearch} className="max-w-3xl mx-auto bg-gray-800 p-6 rounded-2xl shadow-xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-white text-sm font-medium">Destination</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="text"
+                    value={searchParams.destination}
+                    onChange={(e) => setSearchParams({ ...searchParams, destination: e.target.value })}
+                    className="w-full bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Where do you want to go?"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-white text-sm font-medium">Budget (₹)</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="number"
+                    value={searchParams.budget || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, budget: Number(e.target.value) })}
+                    className="w-full bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Your budget"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-white text-sm font-medium">From Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="date"
+                    value={searchParams.fromDate}
+                    onChange={(e) => setSearchParams({ ...searchParams, fromDate: e.target.value })}
+                    className="w-full bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-white text-sm font-medium">To Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="date"
+                    value={searchParams.toDate}
+                    onChange={(e) => setSearchParams({ ...searchParams, toDate: e.target.value })}
+                    className="w-full bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <Users className="h-5 w-5" />
+                  Find Travel Companions
+                </>
+              )}
+            </button>
+          </form>
+        </motion.div>
       </div>
     </div>
   );
