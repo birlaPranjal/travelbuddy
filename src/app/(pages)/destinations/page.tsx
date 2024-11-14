@@ -108,8 +108,32 @@ export default function TouristPlaces() {
 
         const data = await response.json();
 
+        interface Element {
+          id: number;
+          tags: {
+            name?: string;
+            historic?: string;
+            tourism?: string;
+            waterway?: string;
+            natural?: string;
+            water?: string;
+            description?: string;
+            'addr:street'?: string;
+          };
+          lat?: number;
+          lon?: number;
+          center?: {
+            lat: number;
+            lon: number;
+          };
+        }
+
+        interface OverpassResponse {
+          elements: Element[];
+        }
+
         const processedPlaces: Place[] = await Promise.all(
-          data.elements
+          (data as OverpassResponse).elements
             .filter((element) => element.tags && element.tags.name)
             .map(async (element) => {
               let type = '';
@@ -120,7 +144,7 @@ export default function TouristPlaces() {
               if (element.tags.waterway === 'waterfall') type = 'Waterfall';
               if (element.tags.natural === 'water' && element.tags.water === 'lake') type = 'Lake';
 
-              const image = await fetchImageForPlace(element.tags.name, type);
+              const image = await fetchImageForPlace(element.tags.name!, type);
 
               return {
                 id: element.id,
