@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 
+const UNSPLASH_ACCESS_KEY = 'LoXL49MckgJpQJO_51V7B3RocOU1F7rCkAr_qcm6EkM'; // Replace with your Unsplash API key
+
 export default function TouristPlaces() {
   interface Place {
     id: number;
@@ -18,13 +20,33 @@ export default function TouristPlaces() {
   const [error, setError] = useState('');
   const [userLocation, setUserLocation] = useState({ latitude: 0, longitude: 0 });
 
-  // Fetch user's coordinates from the API
+  const fetchImageForPlace = async (placeName: string, type: string): Promise<string | null> => {
+    try {
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(placeName + ' ' + type)}&per_page=1`,
+        {
+          headers: {
+            Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`
+          }
+        }
+      );
+      const data = await response.json();
+      return data.results[0]?.urls?.regular || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleViewDetails = (place: Place) => {
+    const searchQuery = encodeURIComponent(`${place.name} ${place.type} ${place.address}`);
+    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+  };
+
   useEffect(() => {
     const fetchUserCoordinates = async () => {
       try {
         const response = await fetch('/api/user/coordinates');
         const data = await response.json();
-
 
         if (response.ok) {
           setUserLocation({
@@ -44,7 +66,6 @@ export default function TouristPlaces() {
     fetchUserCoordinates();
   }, []);
 
-  // Fetch tourist places based on user's current location
   useEffect(() => {
     const fetchTouristPlaces = async () => {
       try {
@@ -87,63 +108,36 @@ export default function TouristPlaces() {
 
         const data = await response.json();
 
-        interface Place {
-          id: number;
-          name: string;
-          type: string;
-          lat: number | undefined;
-          lon: number | undefined;
-          description: string;
-          address: string;
-          image: string | null;
-        }
+        const processedPlaces: Place[] = await Promise.all(
+          data.elements
+            .filter((element) => element.tags && element.tags.name)
+            .map(async (element) => {
+              let type = '';
+              if (element.tags.historic) type = 'Historical Place';
+              if (element.tags.historic === 'castle') type = 'Castle';
+              if (element.tags.historic === 'palace') type = 'Palace';
+              if (element.tags.tourism === 'museum') type = 'Museum';
+              if (element.tags.waterway === 'waterfall') type = 'Waterfall';
+              if (element.tags.natural === 'water' && element.tags.water === 'lake') type = 'Lake';
 
-        interface OverpassElement {
-          id: number;
-          tags: {
-            name?: string;
-            historic?: string;
-            tourism?: string;
-            waterway?: string;
-            natural?: string;
-            water?: string;
-            description?: string;
-            'addr:street'?: string;
-          };
-          lat?: number;
-          lon?: number;
-          center?: {
-            lat: number;
-            lon: number;
-          };
-        }
+              const image = await fetchImageForPlace(element.tags.name, type);
 
-        const processedPlaces: Place[] = data.elements
-          .filter((element: OverpassElement) => element.tags && element.tags.name)
-          .map((element: OverpassElement) => {
-            let type = '';
-            if (element.tags.historic) type = 'Historical Place';
-            if (element.tags.historic === 'castle') type = 'Castle';
-            if (element.tags.historic === 'palace') type = 'Palace';
-            if (element.tags.tourism === 'museum') type = 'Museum';
-            if (element.tags.waterway === 'waterfall') type = 'Waterfall';
-            if (element.tags.natural === 'water' && element.tags.water === 'lake') type = 'Lake';
-
-            return {
-              id: element.id,
-              name: element.tags.name!,
-              type: type,
-              lat: element.lat || (element.center && element.center.lat),
-              lon: element.lon || (element.center && element.center.lon),
-              description: element.tags.description || '',
-              address: element.tags['addr:street'] || '',
-              image: null
-            };
-          });
+              return {
+                id: element.id,
+                name: element.tags.name!,
+                type: type,
+                lat: element.lat || (element.center && element.center.lat),
+                lon: element.lon || (element.center && element.center.lon),
+                description: element.tags.description || '',
+                address: element.tags['addr:street'] || '',
+                image: image
+              };
+            })
+        );
 
         setPlaces(processedPlaces);
         setLoading(false);
-      } catch{
+      } catch {
         setError("Failed to fetch tourist places");
         setLoading(false);
       }
@@ -153,7 +147,6 @@ export default function TouristPlaces() {
       fetchTouristPlaces();
     }
   }, [userLocation]);
-
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): string => {
     const R = 6371;
@@ -168,58 +161,80 @@ export default function TouristPlaces() {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center min-h-screen bg-gray-900">
       <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
     </div>
   );
   
   if (error) return (
-    <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-      Error: {error}
+    <div className="min-h-screen bg-gray-900 p-8">
+      <div className="p-4 bg-red-900/50 border border-red-500 text-red-200 rounded-xl max-w-2xl mx-auto">
+        Error: {error}
+      </div>
     </div>
   );
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Historical Places, Museums, and Natural Attractions Nearby</h1>
-      {places.length === 0 ? (
-        <p className="text-gray-600">No attractions found in this area.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {places.map(place => (
-            <div key={place.id} className="border rounded-lg overflow-hidden shadow-lg">
-              {place.image ? (
-                <div className="relative h-48">
-                  <img
-                    src={place.image}
-                    alt={place.name}
-                    className="object-cover w-full h-full"
-                  />
+    <div className="min-h-screen bg-gray-900 text-gray-100 -mt-16">
+      <div className="relative py-20 px-4">
+        <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/1591373/pexels-photo-1591373.jpeg')] bg-cover bg-center opacity-10"></div>
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-b from-blue-400 via-blue-500 to-blue-600">
+            Discover Nearby Attractions
+          </h1>
+          
+          {places.length === 0 ? (
+            <p className="text-xl text-gray-400 text-center">No attractions found in this area.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+              {places.map(place => (
+                <div key={place.id} className="group bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                  {place.image ? (
+                    <div className="relative h-48">
+                      <img
+                        src={place.image}
+                        alt={place.name}
+                        className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gray-700 flex items-center justify-center">
+                      <span className="text-gray-400">No image available</span>
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold mb-2 text-blue-400">{place.name}</h2>
+                    <div className="space-y-2">
+                      <p className="text-gray-300">
+                        <span className="text-blue-500">Type:</span> {place.type}
+                      </p>
+                      {place.description && (
+                        <p className="text-gray-400 line-clamp-3">{place.description}</p>
+                      )}
+                      {place.lat && place.lon && (
+                        <p className="text-gray-300">
+                          <span className="text-blue-500">Distance:</span> {calculateDistance(userLocation.latitude, userLocation.longitude, place.lat, place.lon)} km
+                        </p>
+                      )}
+                      {place.address && (
+                        <p className="text-gray-300">
+                          <span className="text-blue-500">Address:</span> {place.address}
+                        </p>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => handleViewDetails(place)}
+                      className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-all duration-300"
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <div className="h-48 bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-500">No image available</span>
-                </div>
-              )}
-              <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">{place.name}</h2>
-                <p className="text-gray-600 mb-2">Type: {place.type}</p>
-                {place.description && (
-                  <p className="text-gray-600 mb-2 line-clamp-3">{place.description}</p>
-                )}
-                {place.lat && place.lon && (
-                  <p className="text-gray-600 mb-2">
-                    Distance: {calculateDistance(userLocation.latitude, userLocation.longitude, place.lat, place.lon)} km
-                  </p>
-                )}
-                {place.address && (
-                  <p className="text-gray-600">Address: {place.address}</p>
-                )}
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
