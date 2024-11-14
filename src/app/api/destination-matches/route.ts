@@ -70,8 +70,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Create the coordinates object in the correct format
-    const coordinates = {
-      type: 'Point',
+    const coordinates: { type: "Point"; coordinates: [number, number] } = {
+      type: "Point",
       coordinates: [locationData.longitude, locationData.latitude]
     };
 
@@ -119,28 +119,39 @@ export async function POST(req: NextRequest) {
       matches: matchingPlans
     });
 
-  } catch (error: any) {
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      errors: error.errors
-    });
-    
-    return NextResponse.json(
-      { 
-        error: 'Failed to process search request',
-        details: error.message,
-        validationErrors: error.errors
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        errors: (error as { errors?: unknown }).errors
+      });
+      
+      return NextResponse.json(
+        { 
+          error: 'Failed to process search request',
+          details: error.message,
+          validationErrors: (error as { errors?: unknown }).errors
+        },
+        { status: 500 }
+      );
+    } else {
+      console.error('Unexpected error:', error);
+      return NextResponse.json(
+        { 
+          error: 'Failed to process search request',
+          details: 'An unexpected error occurred'
+        },
+        { status: 500 }
+      );
+    }
   }
 }
 
 
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await dbConnect();
     const session = await getServerSession(authOptions);
@@ -176,14 +187,14 @@ export async function GET(req: NextRequest) {
           fromDate: { $lte: userPlan.toDate }, // Overlapping dates
           toDate: { $gte: userPlan.fromDate },
           budget: {
-            $gte: userPlan.budget * 0.7, // Within 30% budget range
-            $lte: userPlan.budget * 1.3
+            $gte: userPlan.budget * 0.5, // Within 50% budget range
+            $lte: userPlan.budget * 1.5
           }
         }
       },
       {
         $lookup: {
-          from: 'users', // Assuming your users collection name
+          from: 'users',
           localField: 'userId',
           foreignField: '_id',
           as: 'userDetails'
@@ -200,19 +211,58 @@ export async function GET(req: NextRequest) {
           toDate: 1,
           budget: 1,
           formattedAddress: 1,
+          coordinates: 1,
           distanceInKm: { $divide: ['$distanceInMeters', 1000] },
           user: {
             _id: '$userDetails._id',
             name: '$userDetails.name',
             email: '$userDetails.email',
-            image: '$userDetails.image'
+            image: '$userDetails.image',
+            age: '$userDetails.age',
+            gender: '$userDetails.gender',
+            location: '$userDetails.location',
+            latitude: '$userDetails.latitude',
+            longitude: '$userDetails.longitude',
+            phone: '$userDetails.phone',
+            about: '$userDetails.about',
+            languages: '$userDetails.languages',
+            interests: '$userDetails.interests',
+            username: '$userDetails.username',
+            instagram: '$userDetails.instagram',
+            travelStyles: '$userDetails.travelStyles',
+            isAcceptingMessages: '$userDetails.isAcceptingMessages'
+          },
+          travelPlans: {
+            destination: '$destination',
+            fromDate: '$fromDate',
+            toDate: '$toDate',
+            budget: '$budget',
+            formattedAddress: '$formattedAddress',
+            coordinates: '$coordinates'
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$user._id',
+          user: { $first: '$user' },
+          travelPlans: { 
+            $push: {
+              destination: '$travelPlans.destination',
+              fromDate: '$travelPlans.fromDate',
+              toDate: '$travelPlans.toDate',
+              budget: '$travelPlans.budget',
+              formattedAddress: '$travelPlans.formattedAddress',
+              coordinates: '$travelPlans.coordinates',
+              distanceInKm: '$distanceInKm'
+            }
           }
         }
       },
       {
         $sort: {
-          distanceInKm: 1,
-          fromDate: 1
+          'travelPlans.distanceInKm': 1,
+          'travelPlans.fromDate': 1
         }
       }
     ]);
@@ -223,12 +273,12 @@ export async function GET(req: NextRequest) {
       totalMatches: matchingPlans.length
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error finding matching travel plans:', error);
     return NextResponse.json(
       { 
         error: 'Failed to find matching travel plans',
-        details: error.message
+        details: (error as Error).message
       }, 
       { status: 500 }
     );
