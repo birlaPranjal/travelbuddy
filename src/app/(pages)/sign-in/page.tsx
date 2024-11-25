@@ -67,8 +67,18 @@ export default function SignIn() {
       if (result?.ok) {
         const session = await fetch('/api/auth/session');
         const sessionData = await session.json();
-        if (sessionData?.user?.isNewUser) {
-          router.push('/new-user');
+        
+        if (!sessionData?.user?.isVerified) {
+          // Send verification email
+          await fetch('/api/auth/send-verification', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+          });
+          
+          router.push('/verify-email');
         } else {
           router.push('/profile');
         }
