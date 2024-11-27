@@ -63,7 +63,7 @@ export default function VerifyEmail() {
           Enter Verification Code
         </h2>
         <p className="text-gray-400 text-center mb-8">
-          We've sent a verification code to your email
+          We&apos;ve sent a verification code to your email
         </p>
 
         <div className="flex justify-center gap-2 mb-8">

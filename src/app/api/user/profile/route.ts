@@ -29,9 +29,9 @@ import { Session as AuthSession } from 'next-auth';
 interface Session extends AuthSession {
   user: {
     _id: string;
-    isVerified: boolean;
-    isAcceptingMessages: boolean;
-    username: string;
+    isVerified?: boolean;
+    isAcceptingMessages?: boolean;
+    username?: string;
     isNewUser?: boolean;
     name?: string | null;
     email?: string | null;

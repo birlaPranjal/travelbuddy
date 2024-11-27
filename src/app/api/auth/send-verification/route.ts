@@ -3,8 +3,7 @@ import dbConnect from "@/app/lib/dbConnect";
 import UserModel from "@/app/model/User";
 import VerificationToken from "@/app/model/VerificationToken";
 import crypto from "crypto";
-import { sendVerificationEmail } from "@/app/lib/mail";
-
+import { sendOTPEmail } from "@/app/lib/mail";
 export async function POST(req: Request) {
   try {
     await dbConnect();
@@ -26,7 +25,7 @@ export async function POST(req: Request) {
 
     // Send verification email
     const verificationLink = `https://travelbudyy.vercel.app/verify-email?token=${token}`;
-    await sendVerificationEmail(email, verificationLink);
+    await sendOTPEmail(email, verificationLink);
 
     return NextResponse.json({ message: "Verification email sent" });
   } catch (error) {

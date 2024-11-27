@@ -1,30 +1,8 @@
-import { NextAuthOptions, DefaultSession } from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '../../../lib/dbConnect';
 import UserModel from '@/app/model/User';
-
-declare module 'next-auth' {
-    interface Session {
-        user: {
-            _id: string;
-            isVerified: boolean;
-            isAcceptingMessages: boolean;
-            username: string;
-            isNewUser?: boolean;
-        } & DefaultSession['user'];
-    }
-}
-
-declare module 'next-auth/jwt' {
-    interface JWT {
-        id: string;
-        isVerified: boolean;
-        isAcceptingMessages: boolean;
-        username: string;
-        isNewUser?: boolean;
-    }
-}
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -58,14 +36,13 @@ export const authOptions: NextAuthOptions = {
                         return {
                             id: newUser._id.toString(),
                             email: newUser.email,
-                            isVerified: false, // Return the default value if not verified
+                            isVerified: false,
                             isAcceptingMessages: true,
-                            username: newUser.username || '', // Ensure you provide a default or ensure this field exists
+                            username: newUser.username || '',
                             isNewUser: true,
                         };
                     }
                     
-
                     const isValidPassword = await bcrypt.compare(credentials.password, user.password);
                     if (!isValidPassword) {
                         throw new Error('Invalid credentials');
@@ -91,10 +68,10 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                token.isVerified = (user as typeof token).isVerified;
-                token.isAcceptingMessages = (user as typeof token).isAcceptingMessages;
-                token.username = (user as typeof token).username;
-                token.isNewUser = (user as typeof token).isNewUser;
+                token.isVerified = user.isVerified;
+                token.isAcceptingMessages = user.isAcceptingMessages;
+                token.username = user.username;
+                token.isNewUser = user.isNewUser;
             }
             return token;
         },
@@ -109,9 +86,7 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
         async redirect({ url, baseUrl }) {
-            // Allows relative callback URLs
             if (url.startsWith("/")) return `${baseUrl}${url}`
-            // Allows callback URLs on the same origin
             else if (new URL(url).origin === baseUrl) return url
             return baseUrl
         }
@@ -129,5 +104,5 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt',
     },
     
-    secret: "pranjal travel",
+    secret: process.env.NEXTAUTH_SECRET,
 };
