@@ -69,8 +69,9 @@ export default function SignIn() {
         const sessionData = await session.json();
         
         if (!sessionData?.user?.isVerified) {
-          // Send verification email
-          await fetch('/api/auth/send-verification', {
+          localStorage.setItem('verificationEmail', email);
+          // Send OTP
+          await fetch('/api/auth/send-otp', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

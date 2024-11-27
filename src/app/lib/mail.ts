@@ -8,21 +8,26 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendVerificationEmail(to: string, verificationLink: string) {
+export async function sendOTPEmail(to: string, otp: string) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to,
-    subject: 'Verify Your Email',
+    subject: 'Your Verification Code',
     html: `
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1>Verify Your Email Address</h1>
-        <p>Thank you for signing up! Please click the button below to verify your email address:</p>
-        <a href="${verificationLink}" style="display: inline-block; padding: 10px 20px; background-color: #0070f3; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;">
-          Verify Email
-        </a>
-        <p>If the button doesn't work, you can also click this link:</p>
-        <p>${verificationLink}</p>
-        <p>This link will expire in 1 hour.</p>
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+        <h1 style="color: #333; text-align: center;">Verify Your Email</h1>
+        <div style="background-color: #f8f8f8; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
+          <h2 style="color: #333; margin-bottom: 20px;">Your Verification Code</h2>
+          <div style="font-size: 32px; font-weight: bold; color: #0070f3; letter-spacing: 8px; margin: 20px 0;">
+            ${otp}
+          </div>
+          <p style="color: #666; margin-top: 20px;">
+            This code will expire in 5 minutes.
+          </p>
+        </div>
+        <p style="color: #666; text-align: center; margin-top: 20px;">
+          If you didn't request this code, you can safely ignore this email.
+        </p>
       </div>
     `,
   };
