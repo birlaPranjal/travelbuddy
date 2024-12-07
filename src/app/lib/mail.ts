@@ -8,6 +8,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
 export async function sendOTPEmail(to: string, otp: string) {
   const mailOptions = {
     from: 'koitobanda@gmail.com',
