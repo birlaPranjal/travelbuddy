@@ -13,6 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 400 });
     }
 
+  
     // Update user verification status
     await UserModel.updateOne(
       { _id: verificationToken.userId },
