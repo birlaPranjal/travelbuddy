@@ -1,19 +1,12 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI('AIzaSyCeTU57XCzSh5ik4sJV4yPf-Pe9u7qgSpA');
+// Initialize OpenAI API
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 interface RequestBody {
   prompt: string;
-}
-
-interface GenerationConfig {
-  maxOutputTokens: number;
-  temperature: number;
-}
-
-interface Chat {
-  sendMessage: (messages: { text: string }[]) => Promise<{ response: { text: () => string } }>;
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -27,39 +20,43 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    // Initialize the model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-    // Create chat with strong travel focus
-    const chat: Chat = model.startChat({
-      history: [
+    // Create completion with OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are Gantavya AI, a specialized travel assistant focused on Indian travel and tourism. You must strictly focus on travel and tourism topics about India. Your responses should always relate to Indian destinations, travel tips, tourist attractions, or India-specific travel information. If asked about non-travel topics, politely redirect the conversation back to travel in India. Use an enthusiastic, friendly tone and make responses concise but informative. Include emojis occasionally to add personality."
+        },
         {
           role: "user",
-          parts: [{ text: "You are Gantavya AI, a specialized travel assistant. You must strictly focus on travel and tourism topics. Your responses should always relate to destinations, travel tips, tourist attractions, or travel-related information. If asked about non-travel topics, politely redirect the conversation back to travel. Use an enthusiastic, friendly tone." }],
-        },
-        {
-          role: "model",
-          parts: [{ text: "I am Gantavya AI, your dedicated travel companion! I specialize in helping you discover amazing destinations and plan unforgettable journeys. From hidden gems to popular landmarks, I'm here to guide you through the world of travel. What kind of destination would you like to explore?" }],
-        },
+          content: prompt
+        }
       ],
-      generationConfig: {
-        maxOutputTokens: 500,
-        temperature: 0.9,
-      } as GenerationConfig,
+      temperature: 0.7,
+      max_tokens: 500,
     });
 
-    // Send message and get response
-    const result = await chat.sendMessage([{ text: prompt }]);
-    const response = await result.response;
-    const responseText = response.text();
+    const responseText = completion.choices[0].message.content || "I'm not sure how to respond to that. Could you ask about travel in India?";
     
     return Response.json({ text: responseText });
   } catch (error: unknown) {
-    console.error('Gemini API Error:', error);
+    console.error('OpenAI API Error:', error);
+    
+    if (error instanceof Error) {
+      return Response.json(
+        { 
+          error: 'Failed to fetch AI response', 
+          details: error.message 
+        }, 
+        { status: 500 }
+      );
+    }
+    
     return Response.json(
       { 
         error: 'Failed to fetch AI response', 
-        details: "error.message" 
+        details: 'Unknown error'
       }, 
       { status: 500 }
     );

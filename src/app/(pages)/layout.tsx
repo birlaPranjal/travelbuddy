@@ -2,6 +2,7 @@
 import Header from "@/components/Header";
 import "../globals.css";
 import { SessionProvider } from 'next-auth/react';
+import { WalletProvider } from "../lib/wallet-context";
 
 export default function RootLayout({
   children,
@@ -10,13 +11,15 @@ export default function RootLayout({
 }>) {
   return (
     <SessionProvider>
-      <html lang="en">
-        <body className="bg-gray-900">
-          <Header />
-          <div className="h-20"></div>
-          {children}
-        </body>
-      </html>
+      <WalletProvider>
+        <html lang="en">
+          <body className="bg-gray-900">
+            <Header />
+            <div className="h-20"></div>
+            {children}
+          </body>
+        </html>
+      </WalletProvider>
     </SessionProvider>
   );
 }

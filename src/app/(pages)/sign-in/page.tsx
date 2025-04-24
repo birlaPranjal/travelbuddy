@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FcGoogle } from "react-icons/fc";
 import { IoLogoGithub } from "react-icons/io";
 import { motion } from "framer-motion";
+import { LoadingOverlay } from '@/app/lib/components/LoadingOverlay';
 
 const travelFeatures = [
   {
@@ -45,6 +46,9 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,8 +101,15 @@ export default function SignIn() {
     signIn(provider, { callbackUrl: '/dashboard' });
   };
 
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push('/reset-password');
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 -mt-28">
+      <LoadingOverlay isLoading={isLoading} message={showForgotPassword ? "Sending reset instructions..." : "Signing in..."} />
+      
       {/* Hero Section */}
       <div className="relative h-[40vh] md:h-[50vh]">
         <div className="absolute inset-0">
@@ -129,73 +140,129 @@ export default function SignIn() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-gray-800 text-white p-8 rounded-3xl shadow-2xl"
           >
-            <h2 className="text-2xl font-bold mb-6 text-center">Welcome Back, Explorer!</h2>
-            
-            {error && (
-              <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
-                {error}
-              </div>
+            {showForgotPassword ? (
+              <>
+                <h2 className="text-2xl font-bold mb-6 text-center">Reset Your Password</h2>
+                {forgotPasswordMessage && (
+                  <div className={`mb-6 p-4 rounded-xl ${
+                    forgotPasswordMessage.includes('sent') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {forgotPasswordMessage}
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      required
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 rounded-xl border text-black border-gray-300 transition-all duration-300"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(false)}
+                      className="flex-1 py-3 px-4 rounded-xl text-white bg-gray-600 hover:bg-gray-700 font-medium transition-all duration-300"
+                    >
+                      Back to Sign In
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex-1 py-3 px-4 rounded-xl text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Send Reset Link
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold mb-6 text-center">Welcome Back, Explorer!</h2>
+                
+                {error && (
+                  <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
+                    {error}
+                  </div>
+                )}
+                
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 rounded-xl border text-black border-gray-300 transition-all duration-300"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-sm font-medium">
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-all duration-300"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 rounded-xl border text-black border-gray-300 transition-all duration-300"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3 px-4 rounded-xl text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Signing in...' : 'Sign In'}
+                  </button>
+                </form>
+
+                <div className="mt-8 space-y-4">
+                  <button
+                    onClick={() => handleOAuthSignIn('google')}
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center py-3 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <FcGoogle className="text-2xl mr-3"/>
+                    <span className="text-gray-700 font-medium">Continue with Google</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleOAuthSignIn('github')}
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center py-3 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <IoLogoGithub className="text-2xl mr-3 text-black"/>
+                    <span className="text-gray-700 font-medium">Continue with Github</span>
+                  </button>
+                </div>
+              </>
             )}
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium  mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-xl border text-black border-gray-300 transition-all duration-300"
-                  placeholder="your@email.com"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium  mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-xl border text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 px-4 rounded-xl text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </button>
-            </form>
-
-            <div className="mt-8 space-y-4">
-              <button
-                onClick={() => handleOAuthSignIn('google')}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center py-3 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-all duration-300"
-              >
-                <FcGoogle className="text-2xl mr-3"/>
-                <span className="text-gray-700 font-medium">Continue with Google</span>
-              </button>
-
-              <button
-                onClick={() => handleOAuthSignIn('github')}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center py-3 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-all duration-300"
-              >
-                <IoLogoGithub className="text-2xl mr-3 text-black"/>
-                <span className="text-gray-700 font-medium">Continue with Github</span>
-              </button>
-            </div>
           </motion.div>
 
           {/* Features & Testimonials */}

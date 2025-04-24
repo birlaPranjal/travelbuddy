@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import UserModel from "@/app/model/User";
 import OTP from "@/app/model/OTP";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
     await dbConnect();
-    const { email, otp } = await req.json();
+    const { email, otp, newPassword, isPasswordReset } = await req.json();
 
     const user = await UserModel.findOne({ email });
     if (!user) {
@@ -22,7 +23,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid or expired OTP" }, { status: 400 });
     }
 
-    // Update user verification status
+    // Delete the used OTP
+    await OTP.deleteOne({ _id: otpRecord._id });
+    
+    // If this is a password reset request
+    if (isPasswordReset && newPassword) {
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      
+      // Update user password
+      await UserModel.updateOne(
+        { _id: user._id },
+        { $set: { password: hashedPassword } }
+      );
+      
+      return NextResponse.json({ message: "Password reset successful" });
+    }
+    
+    // If this is just email verification
     await UserModel.updateOne(
       { _id: user._id },
       { 
@@ -32,9 +51,6 @@ export async function POST(req: Request) {
         } 
       }
     );
-
-    // Delete the used OTP
-    await OTP.deleteOne({ _id: otpRecord._id });
 
     return NextResponse.json({ message: "Email verified successfully" });
   } catch (error) {

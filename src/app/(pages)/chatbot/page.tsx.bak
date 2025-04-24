@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const features = [
   {
@@ -51,12 +52,6 @@ const GantavyaChatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  // Function to scroll to the bottom of messages
-  const scrollToBottom = () => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Initial message setup
   useEffect(() => {
     setMessages([
       {
@@ -66,10 +61,6 @@ const GantavyaChatbot = () => {
     ]);
   }, []);
 
-  // Scroll to bottom whenever messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   interface Message {
     sender: string;
@@ -141,17 +132,27 @@ const GantavyaChatbot = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-indigo-950 to-gray-900 text-white py-12 -mt-5">
       <div className="container mx-auto px-4">
         {/* Hero Section */}
-        <div className="text-center mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
           <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4">
             Gantavya AI Assistant
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Your personal guide to discovering the wonders of India
           </p>
-        </div>
+        </motion.div>
         
         {/* Chat Interface */}
-        <div className="max-w-4xl mx-auto bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-gray-700/50">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="max-w-4xl mx-auto bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-gray-700/50"
+        >
           <div className="p-6 bg-gradient-to-r from-blue-900/80 to-indigo-900/80 border-b border-gray-700/50">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
@@ -169,45 +170,53 @@ const GantavyaChatbot = () => {
           </div>
 
           <div className="h-[500px] overflow-y-auto p-6 bg-gray-800/40 backdrop-blur-sm" id="chat-container">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`my-4 flex ${
-                  message.sender === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {message.sender === 'bot' && (
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
-                    <span className="text-sm">🤖</span>
-                  </div>
-                )}
-                
-                <div
-                  className={`p-4 rounded-2xl max-w-[80%] ${
-                    message.sender === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-tr-none shadow-md'
-                      : 'bg-gray-700/80 rounded-tl-none shadow-md'
+            <AnimatePresence>
+              {messages.map((message, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className={`my-4 flex ${
+                    message.sender === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
-                  {formatText(message.text)}
-                </div>
-                
-                {message.sender === 'user' && (
-                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center ml-2 mt-1 flex-shrink-0">
-                    <span className="text-sm">👤</span>
+                  {message.sender === 'bot' && (
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                      <span className="text-sm">🤖</span>
+                    </div>
+                  )}
+                  
+                  <div
+                    className={`p-4 rounded-2xl max-w-[80%] ${
+                      message.sender === 'user'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-tr-none shadow-md'
+                        : 'bg-gray-700/80 rounded-tl-none shadow-md'
+                    }`}
+                  >
+                    {formatText(message.text)}
                   </div>
-                )}
-              </div>
-            ))}
+                  
+                  {message.sender === 'user' && (
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center ml-2 mt-1 flex-shrink-0">
+                      <span className="text-sm">👤</span>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
             
             {isLoading && (
-              <div 
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 className="flex items-center space-x-2 p-4 bg-gray-700/50 backdrop-blur-sm rounded-lg w-fit"
               >
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></div>
-              </div>
+              </motion.div>
             )}
             <div ref={messageEndRef} />
           </div>
@@ -235,10 +244,15 @@ const GantavyaChatbot = () => {
               </button>
             </div>
           </form>
-        </div>
+        </motion.div>
 
         {/* Popular Questions */}
-        <div className="max-w-4xl mx-auto mt-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="max-w-4xl mx-auto mt-8"
+        >
           <div className="flex flex-wrap justify-center gap-3">
             {[
               "Best time to visit Kerala", 
@@ -259,10 +273,15 @@ const GantavyaChatbot = () => {
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Features Section */}
-        <div className="max-w-4xl mx-auto mt-24">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-24"
+        >
           <h2 className="text-3xl font-bold text-center mb-4">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
               Why Choose Gantavya AI?
@@ -274,20 +293,29 @@ const GantavyaChatbot = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div 
+              <motion.div 
                 key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
                 className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 hover:border-blue-500/30 hover:bg-gray-700/50 transition-all duration-300 shadow-lg"
               >
                 <div className="text-4xl mb-4 bg-gradient-to-br from-blue-500/20 to-purple-500/20 w-16 h-16 rounded-xl flex items-center justify-center">{feature.icon}</div>
                 <h3 className="text-xl font-bold mb-2 text-white">{feature.title}</h3>
                 <p className="text-gray-400">{feature.description}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Testimonials Section */}
-        <div className="max-w-4xl mx-auto mt-24">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mt-24"
+        >
           <h2 className="text-3xl font-bold text-center mb-4">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-teal-500">
               What Travelers Say
@@ -299,8 +327,12 @@ const GantavyaChatbot = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div 
+              <motion.div 
                 key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
                 className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 hover:border-teal-500/30 transition-all duration-300 shadow-lg"
               >
                 <div className="flex items-center mb-4">
@@ -316,13 +348,18 @@ const GantavyaChatbot = () => {
                 </div>
                 <div className="text-yellow-400 mb-2">★★★★★</div>
                 <p className="text-gray-300 italic">&quot;{testimonial.text}&quot;</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Call to Action */}
-        <div className="max-w-4xl mx-auto mt-24 text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1 }}
+          className="mt-24 text-center"
+        >
           <div className="bg-gradient-to-br from-blue-900/50 to-indigo-900/50 p-12 rounded-3xl backdrop-blur-sm border border-blue-700/30 shadow-xl">
             <h2 className="text-3xl font-bold mb-4">Ready to Plan Your Indian Adventure?</h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -337,7 +374,7 @@ const GantavyaChatbot = () => {
               Start Planning Now
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
