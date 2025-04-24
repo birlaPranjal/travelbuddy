@@ -2,7 +2,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment variables:
+
+1. Create a `.env.local` file in the root directory
+2. Add the following variables:
+   ```
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASSWORD=your-email-app-password
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your-long-secure-secret-key
+   OPENAI_API_KEY=your-openai-api-key
+   ```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -19,6 +31,26 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Features
+
+### Gantavya AI Travel Assistant
+
+The Gantavya AI chatbot uses OpenAI's GPT-4o model to provide intelligent responses about Indian travel destinations, attractions, and experiences. The chatbot is designed to:
+
+- Provide detailed information about Indian travel destinations
+- Suggest travel itineraries based on user preferences
+- Offer cultural insights and travel tips
+- Answer questions about local cuisine, accommodation, and transportation
+
+The implementation leverages the OpenAI API to generate context-aware responses that are focused on Indian tourism.
+
+### Password Reset System
+
+The application includes a secure password reset system using email verification:
+- NodeMailer integration for sending reset codes
+- OTP verification for secure password changes
+- Modern UI with step-by-step process
 
 ## Learn More
 

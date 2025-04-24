@@ -33,6 +33,7 @@ const Header = () => {
           {session && <Link href="/find-people">Find People</Link>}
           {session && <Link href="/destinations">Destinations</Link>}
           {session && <Link href="/profile">Profile</Link>}
+          {session && <Link href="/tasks">Tasks</Link>}
           {!session && <Link href="/sign-in">Sign In</Link>}
           {session && (
             <>
