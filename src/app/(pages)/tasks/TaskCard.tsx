@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Spinner } from '@/app/components/Spinner';
 import { triggerConfetti } from '@/app/lib/utils';
 import { Toast } from '@/app/components/Toast';
+import { useWallet } from '@/app/lib/wallet-context';
+import { mintNFT } from '@/app/lib/contract';
 
 type Task = {
   id: string;
@@ -17,34 +19,24 @@ type Task = {
 type TaskCardProps = {
   task: Task;
   onComplete?: (taskId: string) => void;
+  isCompleted?: boolean;
 };
 
-export const TaskCard: FC<TaskCardProps> = ({ task, onComplete }) => {
+export const TaskCard: FC<TaskCardProps> = ({ task, onComplete, isCompleted: propIsCompleted }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(propIsCompleted || false);
   const [error, setError] = useState<string | null>(null);
   const [nftUrl, setNftUrl] = useState<string | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const { isConnected, walletAddress, provider } = useWallet();
 
-  // Check if task is already completed from localStorage
+  // Update isCompleted when prop changes
   useEffect(() => {
-    const checkCompletedTask = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const completedTasks = JSON.parse(localStorage.getItem('completedTasks') || '[]') as string[];
-          if (completedTasks.includes(task.id)) {
-            setIsCompleted(true);
-          }
-        } catch (error) {
-          console.error('Error checking completed tasks:', error);
-        }
-      }
-    };
-
-    checkCompletedTask();
-  }, [task.id]);
+    setIsCompleted(propIsCompleted || false);
+  }, [propIsCompleted]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -62,6 +54,12 @@ export const TaskCard: FC<TaskCardProps> = ({ task, onComplete }) => {
       return;
     }
 
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
     setSelectedFile(file);
     
     // Create preview URL
@@ -75,6 +73,11 @@ export const TaskCard: FC<TaskCardProps> = ({ task, onComplete }) => {
       return;
     }
 
+    if (!isConnected || !walletAddress || !provider) {
+      setError('Please connect your wallet first');
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
 
@@ -84,30 +87,57 @@ export const TaskCard: FC<TaskCardProps> = ({ task, onComplete }) => {
       formData.append('image', selectedFile);
       formData.append('taskId', task.id);
 
-      // Send to the API endpoint
-      const response = await axios.post('/api/complete-task', formData, {
+      // Upload the image to Cloudinary via our API
+      const response = await axios.post('/api/upload-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      // Save to localStorage
-      const completedTasks = JSON.parse(localStorage.getItem('completedTasks') || '[]') as string[];
-      if (!completedTasks.includes(task.id)) {
-        completedTasks.push(task.id);
-        localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
+      if (!response.data.imageUrl) {
+        throw new Error('Failed to upload image: No URL returned');
       }
 
-      setIsCompleted(true);
-      setNftUrl(response.data.nftUrl);
+      const imageUrl = response.data.imageUrl;
       
-      // Show success toast and trigger confetti
-      setShowSuccessToast(true);
-      triggerConfetti();
-      
-      // Call the onComplete callback if provided
-      if (onComplete) {
-        onComplete(task.id);
+      // Mint the NFT on-chain
+      try {
+        const result = await mintNFT(
+          provider,
+          walletAddress,
+          imageUrl,
+          task.id
+        );
+        
+        if (!result.transactionHash) {
+          throw new Error('Failed to mint NFT: No transaction hash returned');
+        }
+
+        setTransactionHash(result.transactionHash);
+        
+        // Set NFT URL to the block explorer
+        setNftUrl(`https://mumbai.polygonscan.com/tx/${result.transactionHash}`);
+        
+        // Save to localStorage
+        const completedTasks = JSON.parse(localStorage.getItem('completedTasks') || '[]') as string[];
+        if (!completedTasks.includes(task.id)) {
+          completedTasks.push(task.id);
+          localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
+        }
+
+        setIsCompleted(true);
+        
+        // Show success toast and trigger confetti
+        setShowSuccessToast(true);
+        triggerConfetti();
+        
+        // Call the onComplete callback if provided
+        if (onComplete) {
+          onComplete(task.id);
+        }
+      } catch (mintError) {
+        console.error('Error minting NFT:', mintError);
+        setError('Failed to mint NFT. Please try again.');
       }
     } catch (err) {
       console.error('Error uploading image:', err);
@@ -153,14 +183,21 @@ export const TaskCard: FC<TaskCardProps> = ({ task, onComplete }) => {
                 </div>
               </div>
               {nftUrl && (
-                <a 
-                  href={nftUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 underline"
-                >
-                  View your NFT
-                </a>
+                <div className="space-y-2">
+                  <a 
+                    href={nftUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline"
+                  >
+                    View transaction
+                  </a>
+                  {transactionHash && (
+                    <p className="text-xs text-gray-400 break-all">
+                      TX: {transactionHash}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           ) : (
@@ -200,11 +237,17 @@ export const TaskCard: FC<TaskCardProps> = ({ task, onComplete }) => {
                 </div>
               )}
 
+              {!isConnected && (
+                <div className="bg-yellow-900/20 border border-yellow-800 text-yellow-300 p-3 rounded-md mb-4 text-sm">
+                  Please connect your wallet to mint your NFT reward
+                </div>
+              )}
+
               <button
                 onClick={handleSubmit}
-                disabled={isUploading || !selectedFile}
+                disabled={isUploading || !selectedFile || !isConnected}
                 className={`w-full py-2 px-4 rounded-md transition ${
-                  isUploading || !selectedFile
+                  isUploading || !selectedFile || !isConnected
                     ? 'bg-gray-600 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-500'
                 } text-white font-medium`}
