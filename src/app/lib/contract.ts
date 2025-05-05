@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { createNFT } from '@/app/model/NFT';
 
 // Contract address for Polygon Amoy testnet
 export const CONTRACT_ADDRESS = '0xeC5e77aafbbe4EeE83aff84c3260f35716D83053';
