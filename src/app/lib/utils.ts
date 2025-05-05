@@ -14,17 +14,41 @@ export const shortenAddress = (address: string | null, chars = 4): string => {
 };
 
 /**
- * Formats a date to a user-friendly string
- * @param dateString ISO date string
- * @returns Formatted date string
+ * Formats a number as currency
  */
-export const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
+export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+  }).format(amount);
+};
+
+/**
+ * Formats a date as a string
+ */
+export const formatDate = (date: Date | string, format: 'short' | 'medium' | 'long' = 'medium'): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: 'short',
+    month: format === 'short' ? 'short' : 'long',
     day: 'numeric'
-  });
+  };
+  
+  if (format === 'long') {
+    options.weekday = 'long';
+  }
+  
+  return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+};
+
+/**
+ * Truncates text to a specified length
+ */
+export const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
 };
 
 /**

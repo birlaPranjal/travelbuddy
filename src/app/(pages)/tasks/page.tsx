@@ -38,6 +38,60 @@ const TasksPage: FC = () => {
       description: 'Share a photo of a toll plaza you passed through',
       imageRequired: true,
     },
+    {
+      id: 'landmark',
+      title: 'Famous Landmark',
+      description: 'Take a selfie with a famous landmark or monument',
+      imageRequired: true,
+    },
+    {
+      id: 'local-food',
+      title: 'Local Cuisine',
+      description: 'Share a photo of a traditional local dish you tried',
+      imageRequired: true,
+    },
+    {
+      id: 'sunset',
+      title: 'Beautiful Sunset',
+      description: 'Capture a stunning sunset view during your journey',
+      imageRequired: true,
+    },
+    {
+      id: 'local-transport',
+      title: 'Local Transport',
+      description: 'Take a photo of a unique local mode of transportation',
+      imageRequired: true,
+    },
+    {
+      id: 'street-art',
+      title: 'Street Art',
+      description: 'Find and photograph interesting street art or murals',
+      imageRequired: true,
+    },
+    {
+      id: 'wildlife',
+      title: 'Wildlife Encounter',
+      description: 'Capture a photo of local wildlife or animals you encounter',
+      imageRequired: true,
+    },
+    {
+      id: 'market',
+      title: 'Local Market',
+      description: 'Share a photo from a vibrant local market or bazaar',
+      imageRequired: true,
+    },
+    {
+      id: 'bridge',
+      title: 'Iconic Bridge',
+      description: 'Photograph a famous or beautiful bridge you cross',
+      imageRequired: true,
+    },
+    {
+      id: 'mountain',
+      title: 'Mountain View',
+      description: 'Capture a breathtaking mountain or hill view',
+      imageRequired: true,
+    }
   ];
 
   // Load completed tasks from localStorage
