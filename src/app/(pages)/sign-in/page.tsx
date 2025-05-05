@@ -6,6 +6,7 @@ import { FcGoogle } from "react-icons/fc";
 import { IoLogoGithub } from "react-icons/io";
 import { motion } from "framer-motion";
 import { LoadingOverlay } from '@/app/lib/components/LoadingOverlay';
+import Image from 'next/image';
 
 const travelFeatures = [
   {
@@ -48,7 +49,7 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
+  const [forgotPasswordMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -113,10 +114,12 @@ export default function SignIn() {
       {/* Hero Section */}
       <div className="relative h-[40vh] md:h-[50vh]">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://images.pexels.com/photos/1591373/pexels-photo-1591373.jpeg"
             alt="Travel Background"
-            className="w-full h-full object-cover"
+            fill
+            priority
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-gray-900"></div>
         </div>
@@ -294,10 +297,12 @@ export default function SignIn() {
                   transition={{ delay: 0.3 + index * 0.1 }}
                   className="bg-gray-800 p-6 rounded-2xl flex items-center gap-4"
                 >
-                  <img
+                  <Image
                     src={testimonial.image}
                     alt={testimonial.name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover"
                   />
                   <div>
                     <div className="text-yellow-400 text-sm mb-1">★★★★★</div>

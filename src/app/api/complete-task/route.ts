@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { writeFile } from 'fs/promises';
+import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { Readable } from 'stream';
 import { mintUserNFT } from '@/web3/nft';
 
 // Configure Cloudinary
@@ -10,6 +12,11 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+interface CloudinaryResult {
+  secure_url: string;
+  [key: string]: unknown;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +38,7 @@ export async function POST(request: NextRequest) {
     let imageUrl: string;
     try {
       // Upload to Cloudinary
-      const result = await new Promise<any>((resolve, reject) => {
+      const result = await new Promise<CloudinaryResult>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             folder: 'travel-tasks',
@@ -41,13 +48,12 @@ export async function POST(request: NextRequest) {
             if (error) {
               reject(error);
             } else {
-              resolve(result);
+              resolve(result as CloudinaryResult);
             }
           }
         );
         
         // Convert buffer to stream for Cloudinary
-        const Readable = require('stream').Readable;
         const readableStream = new Readable();
         readableStream.push(buffer);
         readableStream.push(null);
@@ -64,9 +70,8 @@ export async function POST(request: NextRequest) {
       const uploadDir = join(process.cwd(), 'public', 'uploads');
       
       // Ensure the uploads directory exists
-      const fs = require('fs');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+      if (!existsSync(uploadDir)) {
+        await mkdirSync(uploadDir, { recursive: true });
       }
       
       const filePath = join(uploadDir, fileName);

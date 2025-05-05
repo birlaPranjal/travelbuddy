@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 const UNSPLASH_ACCESS_KEY = 'LoXL49MckgJpQJO_51V7B3RocOU1F7rCkAr_qcm6EkM'; // Replace with your Unsplash API key
 
@@ -215,10 +216,11 @@ export default function TouristPlaces() {
                 <div key={place.id} className="group bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
                   {place.image ? (
                     <div className="relative h-48">
-                      <img
+                      <Image
                         src={place.image}
                         alt={place.name}
-                        className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-cover transform group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   ) : (

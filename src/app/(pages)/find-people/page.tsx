@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const successStories = [
   {
@@ -73,10 +74,12 @@ export default function FindPeoplePage() {
       {/* Hero Section */}
       <div className="relative h-[70vh] flex items-center justify-center">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://images.pexels.com/photos/935835/pexels-photo-935835.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
             alt="Travel Friends"
-            className="w-full h-full object-cover"
+            fill
+            priority
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-black opacity-60"></div>
         </div>
@@ -130,10 +133,11 @@ export default function FindPeoplePage() {
             {successStories.map((story) => (
               <div key={story.id} className="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
                 <div className="h-48 relative">
-                  <img
+                  <Image
                     src={story.image}
                     alt={story.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
                 <div className="p-6">

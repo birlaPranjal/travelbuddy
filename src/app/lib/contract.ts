@@ -69,6 +69,7 @@ export const getContract = async (provider?: ethers.BrowserProvider) => {
       try {
         signer = await provider.getSigner();
         console.log('✅ Connected to provider and got signer');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         console.log('⚠️ Could not get signer, using provider directly');
         signer = ethersProvider;
@@ -163,7 +164,7 @@ export const getNFTs = async (address: string): Promise<{ success: boolean; nfts
     }
 
     // Check if the address is valid
-    if (!ethers.isAddress(address)) {
+    if (typeof ethers.isAddress === 'function' && !ethers.isAddress(address)) {
       console.error('❌ Invalid address:', address);
       return {
         success: false,

@@ -25,6 +25,12 @@ type NetworkProviderProps = {
   children: ReactNode;
 };
 
+// Define a specific type for switch error
+interface SwitchNetworkError {
+  code: number;
+  message: string;
+}
+
 export const NetworkProvider: React.FC<NetworkProviderProps> = ({ children }) => {
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(false);
   const [currentChainId, setCurrentChainId] = useState<string | null>(null);
@@ -48,8 +54,8 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({ children }) =>
 
     // Listen for network changes
     if (window.ethereum) {
-      window.ethereum.on('chainChanged', (chainId: string) => {
-        setCurrentChainId(chainId);
+      window.ethereum.on('chainChanged', (chainId) => {
+        setCurrentChainId(typeof chainId === 'string' ? chainId : String(chainId));
         setIsCorrectNetwork(chainId === NETWORK_CONFIG.chainId);
         
         if (chainId !== NETWORK_CONFIG.chainId) {
@@ -62,7 +68,11 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({ children }) =>
 
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener('chainChanged', () => {});
+        try {
+          window.ethereum.removeListener('chainChanged', () => {});
+        } catch (error) {
+          console.error('Error removing event listener:', error);
+        }
       }
     };
   }, []);
@@ -80,8 +90,9 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({ children }) =>
       });
       toast.success('Network switched successfully');
       return true;
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
+    } catch (switchError: unknown) {
+      const error = switchError as SwitchNetworkError;
+      if (error.code === 4902) {
         try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
@@ -89,7 +100,8 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({ children }) =>
           });
           toast.success('Polygon Mumbai network added');
           return true;
-        } catch (addError) {
+        } catch (error) {
+          console.error('Failed to add network:', error);
           toast.error('Failed to add Polygon Mumbai network');
           return false;
         }

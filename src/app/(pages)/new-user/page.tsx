@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 
 const languages = [
@@ -248,10 +249,12 @@ export default function NewUserPage() {
             <div className="flex items-center space-x-6">
               <div className="relative h-32 w-32 rounded-full overflow-hidden bg-gray-700 border-4 border-blue-500/30">
                 {previewImage ? (
-                  <img 
+                  <Image 
                     src={previewImage} 
                     alt="Preview" 
                     className="h-full w-full object-cover"
+                    width={128}
+                    height={128}
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-gray-400">

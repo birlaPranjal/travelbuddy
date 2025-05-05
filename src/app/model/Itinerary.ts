@@ -156,4 +156,12 @@ export const deleteItinerary = async (id: string): Promise<{ success: boolean; e
       error: error instanceof Error ? error.message : 'Failed to delete itinerary',
     };
   }
+};
+
+// Fallback formatCurrency function in case it doesn't exist
+export const formatCurrency = (value: number, currency = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+  }).format(value);
 }; 
