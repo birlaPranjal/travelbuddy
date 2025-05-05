@@ -14,33 +14,33 @@ export const shortenAddress = (address: string | null, chars = 4): string => {
 };
 
 /**
- * Formats a number as currency
+ * Format a number as currency
  */
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+export const formatCurrency = (value: number, currency = 'USD'): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(value);
 };
 
 /**
- * Formats a date as a string
+ * Format a date string or Date object into a human-readable date
  */
-export const formatDate = (date: Date | string, format: 'short' | 'medium' | 'long' = 'medium'): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  const options: Intl.DateTimeFormatOptions = {
+export const formatDate = (
+  date: string | Date,
+  options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: format === 'short' ? 'short' : 'long',
-    day: 'numeric'
-  };
+    month: 'long',
+    day: 'numeric',
+  }
+): string => {
+  const dateObject = typeof date === 'string' ? new Date(date) : date;
   
-  if (format === 'long') {
-    options.weekday = 'long';
+  if (isNaN(dateObject.getTime())) {
+    return 'Invalid date';
   }
   
-  return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+  return new Intl.DateTimeFormat('en-US', options).format(dateObject);
 };
 
 /**

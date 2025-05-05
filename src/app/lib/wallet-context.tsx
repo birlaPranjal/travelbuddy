@@ -58,15 +58,17 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   // Listen for account changes
   useEffect(() => {
     if (typeof window !== 'undefined' && window.ethereum) {
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length === 0) {
+      const handleAccountsChanged = (accounts: unknown) => {
+        const accountArray = Array.isArray(accounts) ? accounts : [];
+        
+        if (accountArray.length === 0) {
           // User disconnected
           setIsConnected(false);
           setWalletAddress(null);
           setProvider(null);
         } else {
           // Account changed
-          setWalletAddress(accounts[0]);
+          setWalletAddress(accountArray[0] as string);
           setIsConnected(true);
         }
       };
@@ -74,7 +76,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       window.ethereum.on('accountsChanged', handleAccountsChanged);
 
       return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        if (window.ethereum) {
+          try {
+            window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+          } catch (error) {
+            console.error('Error removing event listener:', error);
+          }
+        }
       };
     }
   }, []);
@@ -89,7 +97,16 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
     try {
       const browserProvider = new ethers.BrowserProvider(window.ethereum);
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      // Request accounts safely
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+      } catch (requestError) {
+        console.error("User rejected the request:", requestError);
+        setError('Connection rejected. Please approve the connection request.');
+        return;
+      }
+      
       const accounts = await browserProvider.listAccounts();
       
       if (accounts.length > 0) {
@@ -128,6 +145,16 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 // Add TypeScript declaration for window.ethereum
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      on: (eventName: string, handler: (args: unknown) => void) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      removeListener: (eventName: string, handler: (args: unknown) => void) => void;
+      isMetaMask?: boolean;
+      isConnected?: () => boolean;
+      chainId?: string;
+      selectedAddress?: string;
+    };
   }
 } 

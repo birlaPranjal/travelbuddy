@@ -5,6 +5,7 @@ import RevealText from "@/components/RevealText";
 import HomeImageSwiper from "@/components/HomeImageSwiper";
 import FaqSection from "@/components/FaqSection";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const popularDestinations = [
   {
@@ -194,10 +195,11 @@ export default function Page() {
               className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
             >
               <div className="h-[400px] relative">
-                <img
+                <Image
                   src={dest.image}
                   alt={dest.name}
-                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                  fill
+                  className="object-cover transform group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
@@ -230,7 +232,7 @@ export default function Page() {
           </span>
         </h2>
         <p className="text-gray-400 text-center max-w-3xl mx-auto mb-12">
-          Experience world-class hospitality at India's most luxurious hotels and resorts
+          Experience world-class hospitality at India&apos;s most luxurious hotels and resorts
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {luxuryHotels.map((hotel, index) => (
@@ -243,10 +245,11 @@ export default function Page() {
               className="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group"
             >
               <div className="h-64 relative overflow-hidden">
-                <img
+                <Image
                   src={hotel.image}
                   alt={hotel.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute top-2 right-2 bg-yellow-500 text-gray-900 font-bold rounded-full h-10 w-10 flex items-center justify-center">
                   {hotel.rating}
@@ -354,17 +357,20 @@ export default function Page() {
               className="bg-gray-800/70 backdrop-blur-sm p-6 rounded-xl"
             >
               <div className="flex items-center mb-4">
-                <img 
-                  src={testimonial.avatar} 
-                  alt={testimonial.name} 
-                  className="w-12 h-12 rounded-full mr-4 border-2 border-blue-500"
-                />
+                <div className="relative w-12 h-12 mr-4">
+                  <Image 
+                    src={testimonial.avatar}
+                    alt={testimonial.name}
+                    fill
+                    className="rounded-full object-cover border-2 border-blue-500"
+                  />
+                </div>
                 <div>
                   <h4 className="font-bold">{testimonial.name}</h4>
                   <p className="text-gray-400 text-sm">{testimonial.location}</p>
                 </div>
               </div>
-              <p className="text-gray-300">"{testimonial.text}"</p>
+              <p className="text-gray-300">&ldquo;{testimonial.text}&rdquo;</p>
             </motion.div>
           ))}
         </div>
@@ -427,10 +433,24 @@ export default function Page() {
               onClick={() => router.push('/chatbot')}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
-              Chat with Gantavya
+              Chat with Gantavya &nbsp;&rarr;
             </button>
           </div>
         </div>
+
+        {/* Quote Card */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={fadeIn}
+          className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-8 rounded-2xl max-w-lg mx-auto mt-12 text-center shadow-xl border border-purple-500/20"
+        >
+          <p className="text-xl text-gray-200 mb-4 italic">
+            &ldquo;The real voyage of discovery consists not in seeking new landscapes, but in having new eyes.&rdquo;
+          </p>
+          <p className="text-gray-400">- Marcel Proust</p>
+        </motion.div>
       </motion.section>
 
       {/* FAQ Section */}

@@ -18,7 +18,15 @@ const ipfs = create({
   },
 });
 
-export async function uploadToIPFS(metadata: Record<string, any>): Promise<string> {
+interface IPFSMetadata {
+  name?: string;
+  description?: string;
+  image?: string;
+  attributes?: Array<{ trait_type: string; value: string }>;
+  [key: string]: unknown;
+}
+
+export async function uploadToIPFS(metadata: IPFSMetadata): Promise<string> {
   try {
     const result = await ipfs.add(JSON.stringify(metadata));
     return `ipfs://${result.path}`;

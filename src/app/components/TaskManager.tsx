@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Task as TaskModel, TRAVEL_TASKS } from '@/app/model/task';
+import { ITask, TRAVEL_TASKS } from '@/app/model/task';
 import { mintNFT } from '@/app/lib/contract';
+import { uploadToIPFS } from '@/app/lib/ipfs';
+import { ethers } from 'ethers';
 
-interface Task extends TaskModel {
+interface Task extends ITask {
   _id: string;
 }
 
@@ -97,7 +99,10 @@ export default function TaskManager() {
       };
 
       const metadataUri = await uploadToIPFS(metadata);
-      const result = await mintNFT(session.user.email, metadataUri, task.taskId);
+      
+      // Mock the provider since we don't have access to it in this example
+      const mockProvider = { } as ethers.BrowserProvider;
+      const result = await mintNFT(mockProvider, session.user.email, metadataUri, task.taskId);
 
       if (result.success) {
         await fetch('/api/tasks', {

@@ -70,17 +70,18 @@ export async function mintUserNFT(userWallet: string, imageUrl: string, taskId: 
     
     // Get the token ID from the NFTMinted event
     const mintedEvent = receipt.logs
-      .map((log: any) => {
+      .map((log: { topics: unknown; data: string }) => {
         try {
           return nftContract.interface.parseLog({
             topics: log.topics as string[],
             data: log.data
           });
-        } catch (e) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (error: unknown) {
           return null;
         }
       })
-      .find((event: any) => event && event.name === 'NFTMinted');
+      .find((event: { name?: string } | null) => event && event.name === 'NFTMinted');
     
     const tokenId = mintedEvent ? mintedEvent.args[1].toString() : '0';
     

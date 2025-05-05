@@ -8,7 +8,6 @@ import { createBooking } from '@/app/model/Booking';
 import { PageTransition } from '@/app/components/PageTransition';
 import { Spinner } from '@/app/components/Spinner';
 import { RazorpayPayment } from '@/app/components/RazorpayPayment';
-import { formatCurrency } from '@/app/lib/utils';
 
 interface ItineraryDetailPageProps {
   params: {
@@ -44,7 +43,7 @@ const ItineraryDetailPage: FC<ItineraryDetailPageProps> = ({ params }) => {
           setItinerary(result.itinerary);
           setBooking(prev => ({
             ...prev,
-            totalPrice: result.itinerary.price,
+            totalPrice: result.itinerary?.price || 0,
           }));
         } else {
           throw new Error(result.error || 'Failed to fetch itinerary');
@@ -252,7 +251,7 @@ const ItineraryDetailPage: FC<ItineraryDetailPageProps> = ({ params }) => {
                 {/* Inclusions */}
                 {itinerary.inclusions && itinerary.inclusions.length > 0 && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">What's Included</h2>
+                    <h2 className="text-xl font-semibold text-white mb-4">What&apos;s Included</h2>
                     <ul className="grid grid-cols-1 gap-3">
                       {itinerary.inclusions.map((inclusion, index) => (
                         <li key={`inclusion-${index}`} className="flex text-gray-300">
@@ -269,7 +268,7 @@ const ItineraryDetailPage: FC<ItineraryDetailPageProps> = ({ params }) => {
                 {/* Exclusions */}
                 {itinerary.exclusions && itinerary.exclusions.length > 0 && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">What's Not Included</h2>
+                    <h2 className="text-xl font-semibold text-white mb-4">What&apos;s Not Included</h2>
                     <ul className="grid grid-cols-1 gap-3">
                       {itinerary.exclusions.map((exclusion, index) => (
                         <li key={`exclusion-${index}`} className="flex text-gray-300">
@@ -446,22 +445,24 @@ const ItineraryDetailPage: FC<ItineraryDetailPageProps> = ({ params }) => {
                     buttonText={paymentProcessing ? "Processing..." : "Confirm & Pay"}
                     onSuccess={handlePaymentSuccess}
                     onError={(error) => {
+                      setError('Failed to create booking. Please try again.');
                       console.error('Payment error:', error);
-                      setError('Payment failed. Please try again.');
                     }}
-                    disabled={paymentProcessing}
-                    prefill={{
-                      name: booking.userName,
-                      email: booking.userEmail,
-                      contact: booking.contactNumber,
-                    }}
-                    notes={{
-                      itineraryId: itinerary._id,
-                      itineraryName: itinerary.title,
-                      startDate: booking.startDate,
-                      numberOfPeople: booking.numberOfPeople.toString(),
-                    }}
+                    disabled={!booking.userName || !booking.userEmail || !booking.contactNumber || !booking.startDate}
                   />
+                </div>
+                
+                <p className="text-gray-400 text-xs text-center mt-4">
+                  By confirming your booking, you agree to our
+                  <span className="text-blue-400 mx-1">Terms of Service</span>
+                  and
+                  <span className="text-blue-400 ml-1">Privacy Policy</span>
+                </p>
+                
+                <div className="mt-6 text-center">
+                  <p className="text-gray-400 text-sm">
+                    Having issues? Feel free to <a href="mailto:support@travelbuddy.com" className="text-blue-400 hover:underline">contact support</a>.
+                  </p>
                 </div>
               </form>
             </div>

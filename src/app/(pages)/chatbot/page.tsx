@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 const features = [
   {
@@ -304,11 +305,15 @@ const GantavyaChatbot = () => {
                 className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 hover:border-teal-500/30 transition-all duration-300 shadow-lg"
               >
                 <div className="flex items-center mb-4">
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-teal-500"
-                  />
+                  <div className="relative w-12 h-12">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={48}
+                      height={48}
+                      className="rounded-full object-cover border-2 border-teal-500"
+                    />
+                  </div>
                   <div className="ml-4">
                     <h3 className="font-bold">{testimonial.name}</h3>
                     <p className="text-gray-400 text-sm">{testimonial.location}</p>

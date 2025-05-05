@@ -7,11 +7,9 @@ import Image from "next/image";
 import { useWallet } from "@/app/lib/wallet-context";
 import { WalletConnect } from "@/app/components/WalletConnect";
 import { Spinner } from "@/app/components/Spinner";
-import { formatDate } from "@/app/lib/utils";
 import { PageTransition } from "@/app/components/PageTransition";
 import { getNFTs, CONTRACT_ADDRESS } from "@/app/lib/contract";
 import { getNFTsByOwner, DBNFT } from '@/app/model/NFT';
-import { NFTData } from '@/app/model/NFT';
 
 interface UserProfile {
   name: string;
@@ -25,11 +23,6 @@ interface UserProfile {
   image: string;
   phone: string;
   instagram: string;
-}
-
-interface ProfileNFT extends NFTData {
-  id: string;
-  createdAt: Date;
 }
 
 interface BlockchainNFT {
@@ -194,11 +187,14 @@ export default function ProfilePage() {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-blue-500 ring-offset-4 ring-offset-gray-800">
                     {profile.image ? (
-                      <img 
-                        src={profile.image} 
-                        alt={profile.name} 
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="relative w-full h-full">
+                        <Image 
+                          src={profile.image} 
+                          alt={profile.name} 
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
                       <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl text-gray-400">
                         {profile.name[0]}
@@ -259,20 +255,20 @@ export default function ProfilePage() {
                       className="bg-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
                     >
                       <div className="relative h-48">
-                        {nft.image && (
+                        {nft.metadata?.image && (
                           <Image
-                            src={nft.image}
-                            alt={nft.name || 'NFT'}
+                            src={nft.metadata.image}
+                            alt={nft.metadata?.name || 'NFT'}
                             fill
                             className="object-cover"
                           />
                         )}
                       </div>
                       <div className="p-4">
-                        <h3 className="text-white font-semibold mb-2">{nft.name || 'Unnamed NFT'}</h3>
+                        <h3 className="text-white font-semibold mb-2">{nft.metadata?.name || 'Unnamed NFT'}</h3>
                         <div className="text-sm text-gray-400 space-y-1">
                           <p>Token ID: {nft.tokenId}</p>
-                          {nft.description && <p className="mt-2">{nft.description}</p>}
+                          {nft.metadata?.description && <p className="mt-2">{nft.metadata.description}</p>}
                         </div>
                         <div className="mt-4 flex justify-between items-center">
                           <a

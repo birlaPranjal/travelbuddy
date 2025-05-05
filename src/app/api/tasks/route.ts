@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { Task, TRAVEL_TASKS } from '@/app/model/task';
-import { connectToDatabase } from '@/app/lib/mongodb';
+import connectToDatabase from '@/app/lib/dbConnect';
 
 export async function GET() {
   try {

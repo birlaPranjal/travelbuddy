@@ -2,7 +2,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/autoplay";
-
+import Image from "next/image";
 
 // Swiper modules
 import { Autoplay } from "swiper/modules";
@@ -44,11 +44,12 @@ const HomeImageSwiper = () => {
       >
         {images.map((image, index) => (
           <SwiperSlide key={index}>
-            <div className="overflow-hidden rounded-3xl">
-              <img
+            <div className="overflow-hidden rounded-3xl relative h-[200px] md:h-[500px]">
+              <Image
                 src={image}
                 alt={`Image ${index + 1}`}
-                className="w-full h-[200px] md:h-[500px] object-cover transition-transform duration-500 hover:scale-110"
+                fill
+                className="object-cover transition-transform duration-500 hover:scale-110"
               />
             </div>
           </SwiperSlide>

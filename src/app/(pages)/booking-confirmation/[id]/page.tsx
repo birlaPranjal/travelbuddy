@@ -13,12 +13,44 @@ interface BookingConfirmationPageProps {
   };
 }
 
+interface BookingData {
+  _id: string;
+  itineraryId: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  startDate: string;
+  numberOfPeople: number;
+  totalPrice: number;
+  status: string;
+  specialRequests?: string;
+  contactNumber: string;
+  paymentId?: string;
+  orderId?: string;
+  paymentSignature?: string;
+  paymentStatus?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ItineraryData {
+  _id: string;
+  title: string;
+  description: string;
+  location: string;
+  price: number;
+  duration: number;
+  inclusions?: string[];
+  exclusions?: string[];
+  images?: string[];
+}
+
 const BookingConfirmationPage: FC<BookingConfirmationPageProps> = ({ params }) => {
   const { id } = params;
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [bookingData, setBookingData] = useState<any>(null);
-  const [itineraryData, setItineraryData] = useState<any>(null);
+  const [bookingData, setBookingData] = useState<BookingData | null>(null);
+  const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const router = useRouter();
 
   useEffect(() => {
