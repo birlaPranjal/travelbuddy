@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Verify JWT token
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
       
       // Get query parameters
       const { searchParams } = new URL(request.url);
@@ -87,8 +87,8 @@ export async function GET(request: NextRequest) {
             distance: Math.round(distance * 100) / 100, // Round to 2 decimal places
           };
         })
-        .filter(item => item && item.distance <= radius)
-        .sort((a, b) => a!.distance - b!.distance)
+        .filter((item): item is { user: { _id: string | number; username?: string; email: string; age?: number; gender?: string; about?: string; location?: string; languages?: string[]; interests?: string[]; travelStyles?: string[]; coordinates?: { latitude: string | number; longitude: string | number }; isVerified?: boolean }; distance: number } => item !== null && item.distance <= radius)
+        .sort((a, b) => a.distance - b.distance)
         .slice(0, maxResults);
 
       // Format user data
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         },
       });
 
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired token' },
         { status: 401 }

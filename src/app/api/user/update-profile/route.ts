@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest) {
 
     try {
       // Verify JWT token
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
       
       // Find user by ID from token
       const user = await UserModel.findById(decoded.userId);
@@ -88,7 +88,7 @@ export async function PUT(request: NextRequest) {
         message: 'Profile updated successfully',
       });
 
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired token' },
         { status: 401 }

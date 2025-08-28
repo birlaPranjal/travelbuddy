@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       const maxResults = parseInt(searchParams.get('limit') || '20');
       
       // Build search query
-      let searchQuery: any = {};
+      const searchQuery: Record<string, unknown> = {};
       
       if (query) {
         searchQuery.$or = [
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         },
       });
 
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired token' },
         { status: 401 }

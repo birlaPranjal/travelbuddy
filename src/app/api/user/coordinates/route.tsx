@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
       // Mobile app authentication
       const token = authHeader.substring(7);
       try {
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
         userId = decoded.userId;
-      } catch (jwtError) {
+      } catch {
         return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
       }
     } else {
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     
     try {
       // Verify JWT token
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
       const userId = decoded.userId;
       
       // Get coordinates from request body
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         coordinates: { latitude, longitude }
       });
       
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
     
