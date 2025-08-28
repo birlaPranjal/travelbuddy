@@ -1,0 +1,351 @@
+'use client';
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+
+const features = [
+  {
+    icon: "🎯",
+    title: "Smart Recommendations",
+    description: "Get personalized travel suggestions based on your preferences and interests"
+  },
+  {
+    icon: "📅",
+    title: "Trip Planning",
+    description: "Detailed itineraries and scheduling assistance for your perfect journey"
+  },
+  {
+    icon: "🏨",
+    title: "Accommodation Tips",
+    description: "Find the best places to stay within your budget and preferred location"
+  },
+  {
+    icon: "🍜",
+    title: "Local Cuisine Guide",
+    description: "Discover must-try dishes and top-rated restaurants in each destination"
+  }
+];
+
+const testimonials = [
+  {
+    avatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
+    name: "Sarah Thompson",
+    location: "United States",
+    text: "Gantavya AI made planning my India trip so much easier! It suggested amazing hidden gems I wouldn't have found otherwise."
+  },
+  {
+    avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg",
+    name: "Mark Chen",
+    location: "Singapore",
+    text: "The cultural insights provided by Gantavya were invaluable. It helped me navigate local customs with confidence."
+  },
+  {
+    avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg",
+    name: "Emma Wilson",
+    location: "Australia",
+    text: "Best travel companion ever! The restaurant recommendations were spot-on, and the local tips saved me time and money."
+  }
+];
+
+const GantavyaChatbot = () => {
+  const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messageEndRef = useRef<HTMLDivElement>(null);
+
+  // Function to scroll to the bottom of messages
+  const scrollToBottom = () => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Initial message setup
+  useEffect(() => {
+    setMessages([
+      {
+        sender: 'bot',
+        text: "Namaste! 🙏 I'm Gantavya AI, your dedicated travel companion for exploring India! 🌍✈️\n\nI'm here to help you discover amazing destinations and plan unforgettable journeys. I can assist you with:\n\n🏖️ Pristine beaches of Goa\n🏔️ Majestic Himalayas\n🏛️ Ancient temples and palaces\n🌆 Vibrant city experiences\n🍛 Culinary adventures\n\nWhat would you like to explore today?"
+      }
+    ]);
+  }, []);
+
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  interface Message {
+    sender: string;
+    text: string;
+  }
+
+  interface ApiResponse {
+    text: string;
+  }
+
+  const sendMessage = async (message: string): Promise<void> => {
+    setIsLoading(true);
+    setMessages((prev: Message[]) => [...prev, { sender: 'user', text: message }]);
+
+    try {
+      const response = await fetch('/api/generate-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: message }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: ApiResponse = await response.json();
+      setMessages((prev: Message[]) => [...prev, { sender: 'bot', text: data.text }]);
+    } catch (error) {
+      console.error('Error in fetching response:', error);
+      setMessages((prev: Message[]) => [...prev, { 
+        sender: 'bot', 
+        text: 'Sorry, I encountered an error while processing your request. Please try again!' 
+      }]);
+    } finally {
+      setIsLoading(false);
+      setInputMessage('');
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    if (inputMessage.trim()) {
+      sendMessage(inputMessage.trim());
+    }
+  };
+
+  // Function to format text with markdown-like syntax
+  const formatText = (text: string): JSX.Element[] => {
+    return text.split('\n').map((line, i) => {
+      // Bold text
+      let formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // Italics
+      formattedLine = formattedLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      return (
+        <p 
+          key={i} 
+          className={i > 0 ? 'mt-2' : ''}
+          dangerouslySetInnerHTML={{ __html: formattedLine }}
+        />
+      );
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-indigo-950 to-gray-900 text-white py-12 -mt-5">
+      <div className="container mx-auto px-4">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4">
+            Gantavya AI Assistant
+          </h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Your personal guide to discovering the wonders of India
+          </p>
+        </div>
+        
+        {/* Chat Interface */}
+        <div className="max-w-4xl mx-auto bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-gray-700/50">
+          <div className="p-6 bg-gradient-to-r from-blue-900/80 to-indigo-900/80 border-b border-gray-700/50">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Gantavya AI</h2>
+                <p className="text-gray-300">Your Personal India Travel Guide</p>
+              </div>
+              <div className="ml-auto flex items-center">
+                <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                <span className="text-sm text-gray-300">Online</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-[500px] overflow-y-auto p-6 bg-gray-800/40 backdrop-blur-sm" id="chat-container">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`my-4 flex ${
+                  message.sender === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                {message.sender === 'bot' && (
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                    <span className="text-sm">🤖</span>
+                  </div>
+                )}
+                
+                <div
+                  className={`p-4 rounded-2xl max-w-[80%] ${
+                    message.sender === 'user'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-tr-none shadow-md'
+                      : 'bg-gray-700/80 rounded-tl-none shadow-md'
+                  }`}
+                >
+                  {formatText(message.text)}
+                </div>
+                
+                {message.sender === 'user' && (
+                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center ml-2 mt-1 flex-shrink-0">
+                    <span className="text-sm">👤</span>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div 
+                className="flex items-center space-x-2 p-4 bg-gray-700/50 backdrop-blur-sm rounded-lg w-fit"
+              >
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></div>
+              </div>
+            )}
+            <div ref={messageEndRef} />
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-4 bg-gradient-to-r from-gray-800/80 to-gray-700/80 border-t border-gray-700/50">
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ask about destinations, attractions, or travel tips..."
+                className="flex-grow p-4 rounded-lg bg-gray-800/80 text-white border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-inner"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                className={`px-6 py-4 rounded-lg text-white font-semibold transition-all ${
+                  isLoading 
+                    ? 'bg-gradient-to-r from-blue-600/70 to-indigo-600/70 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/20'
+                }`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Thinking...' : 'Ask Gantavya'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Popular Questions */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              "Best time to visit Kerala", 
+              "Top street food in Delhi", 
+              "Taj Mahal visiting tips",
+              "Goa beaches guide"
+            ].map((question, idx) => (
+              <button 
+                key={idx}
+                onClick={() => {
+                  setInputMessage(question);
+                  sendMessage(question);
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/80 rounded-full text-sm backdrop-blur-sm border border-gray-700/50 transition-all"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="max-w-4xl mx-auto mt-24">
+          <h2 className="text-3xl font-bold text-center mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+              Why Choose Gantavya AI?
+            </span>
+          </h2>
+          <p className="text-center text-gray-400 mb-12 max-w-2xl mx-auto">
+            Our AI assistant is specially trained on Indian travel data to provide you with accurate, relevant information
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div 
+                key={index}
+                className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 hover:border-blue-500/30 hover:bg-gray-700/50 transition-all duration-300 shadow-lg"
+              >
+                <div className="text-4xl mb-4 bg-gradient-to-br from-blue-500/20 to-purple-500/20 w-16 h-16 rounded-xl flex items-center justify-center">{feature.icon}</div>
+                <h3 className="text-xl font-bold mb-2 text-white">{feature.title}</h3>
+                <p className="text-gray-400">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div className="max-w-4xl mx-auto mt-24">
+          <h2 className="text-3xl font-bold text-center mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-teal-500">
+              What Travelers Say
+            </span>
+          </h2>
+          <p className="text-center text-gray-400 mb-12 max-w-2xl mx-auto">
+            Real experiences from travelers who explored India with Gantavya AI
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div 
+                key={index}
+                className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 hover:border-teal-500/30 transition-all duration-300 shadow-lg"
+              >
+                <div className="flex items-center mb-4">
+                  <div className="relative w-12 h-12">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={48}
+                      height={48}
+                      className="rounded-full object-cover border-2 border-teal-500"
+                    />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="font-bold">{testimonial.name}</h3>
+                    <p className="text-gray-400 text-sm">{testimonial.location}</p>
+                  </div>
+                </div>
+                <div className="text-yellow-400 mb-2">★★★★★</div>
+                <p className="text-gray-300 italic">&quot;{testimonial.text}&quot;</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="max-w-4xl mx-auto mt-24 text-center">
+          <div className="bg-gradient-to-br from-blue-900/50 to-indigo-900/50 p-12 rounded-3xl backdrop-blur-sm border border-blue-700/30 shadow-xl">
+            <h2 className="text-3xl font-bold mb-4">Ready to Plan Your Indian Adventure?</h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Let Gantavya AI help you create unforgettable memories across incredible India!
+            </p>
+            <button 
+              onClick={() => {
+                setInputMessage("Help me plan a trip to India");
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              Start Planning Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default GantavyaChatbot;
