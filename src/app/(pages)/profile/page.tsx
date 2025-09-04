@@ -216,6 +216,16 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          //edit profile page button
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => router.push("/update-user")}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+            >
+              Edit Profile
+            </button>
+          </div>
+
           {/* Profile Content */}
           <div className="bg-gray-800 rounded-b-2xl shadow-xl overflow-hidden">
             {/* About Section */}
