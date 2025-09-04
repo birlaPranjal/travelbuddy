@@ -216,7 +216,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          //edit profile page button
           <div className="flex justify-end mb-4">
             <button
               onClick={() => router.push("/update-user")}
@@ -225,6 +224,7 @@ export default function ProfilePage() {
               Edit Profile
             </button>
           </div>
+          
 
           {/* Profile Content */}
           <div className="bg-gray-800 rounded-b-2xl shadow-xl overflow-hidden">
