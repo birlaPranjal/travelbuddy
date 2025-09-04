@@ -160,6 +160,43 @@ export default function Page() {
         <RevealText />
       </section>
 
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeIn}
+      >
+        <h2 className="text-3xl font-bold text-center mb-8">
+          Why Choose Us?
+        </h2>
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="bg-gray-900 p-6 rounded-lg shadow-lg"
+          >
+            <h3 className="text-xl font-semibold mb-2">Expert Guidance</h3>
+            <p className="text-gray-400">
+              Our team of travel experts is here to help you plan the perfect trip.
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="bg-gray-900 p-6 rounded-lg shadow-lg"
+          >
+            <h3 className="text-xl font-semibold mb-2">Personalized Itineraries</h3>
+            <p className="text-gray-400">
+              We create customized travel itineraries tailored to your preferences.
+            </p>
+          </motion.div>
+        </div>
+      </motion.div>
+
       {/* Image Swiper */}
       <section className="py-20 bg-gray-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20 z-0"></div>
