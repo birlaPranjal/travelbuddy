@@ -224,7 +224,7 @@ export default function ProfilePage() {
               Edit Profile
             </button>
           </div>
-          
+
 
           {/* Profile Content */}
           <div className="bg-gray-800 rounded-b-2xl shadow-xl overflow-hidden">
