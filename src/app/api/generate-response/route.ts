@@ -9,6 +9,7 @@ interface RequestBody {
   prompt: string;
 }
 
+
 export async function POST(req: Request): Promise<Response> {
   try {
     const { prompt }: RequestBody = await req.json();
@@ -19,6 +20,7 @@ export async function POST(req: Request): Promise<Response> {
         { status: 400 }
       );
     }
+
 
     // Create completion with OpenAI
     const completion = await openai.chat.completions.create({
@@ -40,7 +42,8 @@ export async function POST(req: Request): Promise<Response> {
     const responseText = completion.choices[0].message.content || "I'm not sure how to respond to that. Could you ask about travel in India?";
     
     return Response.json({ text: responseText });
-  } catch (error: unknown) {
+  }
+   catch (error: unknown) {
     console.error('OpenAI API Error:', error);
     
     if (error instanceof Error) {
@@ -52,7 +55,6 @@ export async function POST(req: Request): Promise<Response> {
         { status: 500 }
       );
     }
-    
     return Response.json(
       { 
         error: 'Failed to fetch AI response', 
