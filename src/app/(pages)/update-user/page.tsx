@@ -38,6 +38,8 @@ export default function UpdateUserPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [verificationFile, setVerificationFile] = useState<File | null>(null);
+  const [previewVerificationDoc, setPreviewVerificationDoc] = useState('');
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
@@ -81,6 +83,7 @@ export default function UpdateUserPage() {
           setSelectedInterests(data.interests || []);
           setSelectedStyles(data.travelStyles || []);
           setPreviewImage(data.image || '');
+          setPreviewVerificationDoc(data.verificationDocument || '');
           
           if (data.coordinates) {
             setCoordinates({
@@ -201,6 +204,20 @@ export default function UpdateUserPage() {
     }
   };
 
+  const handleVerificationDocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const file = files[0];
+    if (file) {
+      setVerificationFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewVerificationDoc(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   interface FormData {
     name: string;
     age: number;
@@ -213,6 +230,7 @@ export default function UpdateUserPage() {
 
   const onSubmit = async (data: FormData) => {
     let imageUrl = previewImage;
+    let verificationDocUrl = previewVerificationDoc;
 
     if (imageFile) {
       const formData = new FormData();
@@ -235,12 +253,34 @@ export default function UpdateUserPage() {
       }
     }
 
+    if (verificationFile) {
+      const formData = new FormData();
+      formData.append('file', verificationFile);
+      formData.append('upload_preset', 'travel');
+
+      try {
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/travelee/image/upload`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+
+        const result = await response.json();
+        verificationDocUrl = result.secure_url;
+      } catch (error) {
+        console.error('Error uploading verification document:', error);
+      }
+    }
+
     const formDataWithExtras = {
       ...data,
       languages: selectedLanguages,
       interests: selectedInterests,
       travelStyles: selectedStyles,
       image: imageUrl,
+      verificationDocument: verificationDocUrl,
       coordinates
     };
 
@@ -313,6 +353,80 @@ export default function UpdateUserPage() {
                 <p className="mt-2 text-sm text-gray-400">
                   PNG, JPG up to 5MB
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Verification Documents Section */}
+          <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold text-white mb-6">
+              Verification Documents
+              <span className="ml-2 text-sm text-yellow-400 font-normal">
+                (For safety verification - Police verification or Government ID)
+              </span>
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-6">
+                <div className="relative h-40 w-60 rounded-lg overflow-hidden bg-gray-700 border-2 border-dashed border-blue-500/30">
+                  {previewVerificationDoc ? (
+                    <Image 
+                      src={previewVerificationDoc} 
+                      alt="Verification Document Preview" 
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex flex-col items-center justify-center text-gray-400">
+                      <span className="text-4xl mb-2">📄</span>
+                      <span className="text-sm text-center px-2">
+                        Upload ID or Police Verification
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="block">
+                    <span className="sr-only">Choose verification document</span>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleVerificationDocChange}
+                      className="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-green-500 file:text-white
+                        hover:file:bg-green-600
+                        cursor-pointer"
+                    />
+                  </label>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm text-gray-400">
+                      Accepted documents:
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1">
+                      <li>• Government issued ID (Passport, Driver's License, National ID)</li>
+                      <li>• Police verification certificate</li>
+                      <li>• Background check documents</li>
+                    </ul>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Supported formats: JPG, PNG, PDF (max 10MB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <span className="text-blue-400 text-lg">🔒</span>
+                  <div className="text-sm">
+                    <p className="text-blue-300 font-medium mb-1">Why do we need this?</p>
+                    <p className="text-blue-200/80">
+                      Your verification documents help us ensure the safety of our travel community. 
+                      All documents are securely stored and only used for verification purposes. 
+                      Verified users get a trust badge on their profile.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
