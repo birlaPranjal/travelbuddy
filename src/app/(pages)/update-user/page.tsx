@@ -405,7 +405,7 @@ export default function UpdateUserPage() {
                       Accepted documents:
                     </p>
                     <ul className="text-xs text-gray-500 space-y-1">
-                      <li>• Government issued ID (Passport, Driver's License, National ID)</li>
+                      <li>• Government issued ID (Passport, Driver&apos;s License, National ID)</li>
                       <li>• Police verification certificate</li>
                       <li>• Background check documents</li>
                     </ul>
