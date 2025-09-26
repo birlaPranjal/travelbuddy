@@ -395,8 +395,8 @@ export default function UpdateUserPage() {
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-full file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-green-500 file:text-white
-                        hover:file:bg-green-600
+                        file:bg-green-600 file:text-white
+                        hover:file:bg-green-700
                         cursor-pointer"
                     />
                   </label>
