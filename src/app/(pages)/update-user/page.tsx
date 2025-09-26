@@ -379,7 +379,7 @@ export default function UpdateUserPage() {
                     <div className="h-full w-full flex flex-col items-center justify-center text-gray-400">
                       <span className="text-4xl mb-2">📄</span>
                       <span className="text-sm text-center px-2">
-                        Upload ID or Police Verification
+                        Upload your verification document
                       </span>
                     </div>
                   )}
