@@ -410,7 +410,7 @@ export default function UpdateUserPage() {
                       <li>• Background check documents</li>
                     </ul>
                     <p className="text-xs text-gray-500 mt-2">
-                      Supported formats: JPG, PNG, PDF (max 10MB)
+                      Supported formats: JPG, PNG, PDF (maximum file size: 10MB)
                     </p>
                   </div>
                 </div>
