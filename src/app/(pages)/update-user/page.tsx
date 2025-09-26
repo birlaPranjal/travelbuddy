@@ -408,6 +408,7 @@ export default function UpdateUserPage() {
                       <li>• Government issued ID (Passport, Driver&apos;s License, National ID)</li>
                       <li>• Police verification certificate</li>
                       <li>• Background check documents</li>
+                      <li>• Voter ID or Aadhaar card</li>
                     </ul>
                     <p className="text-xs text-gray-500 mt-2">
                       Supported formats: JPG, PNG, PDF (maximum file size: 10MB)
