@@ -360,7 +360,7 @@ export default function UpdateUserPage() {
           {/* Verification Documents Section */}
           <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
             <h2 className="text-xl font-semibold text-white mb-6">
-              Verification Documents
+              Identity Verification Documents
               <span className="ml-2 text-sm text-yellow-400 font-normal">
                 (For safety verification - Police verification or Government ID)
               </span>
