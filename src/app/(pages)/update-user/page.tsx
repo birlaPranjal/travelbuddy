@@ -362,7 +362,7 @@ export default function UpdateUserPage() {
             <h2 className="text-xl font-semibold text-white mb-6">
               Identity Verification Documents
               <span className="ml-2 text-sm text-yellow-400 font-normal">
-                (For safety verification - Police verification or Government ID)
+                (Required for community safety and trust verification)
               </span>
             </h2>
             <div className="space-y-4">
