@@ -425,7 +425,7 @@ export default function UpdateUserPage() {
                     <p className="text-blue-200/80">
                       Your verification documents help us ensure the safety of our travel community. 
                       All documents are securely stored and only used for verification purposes. 
-                      Verified users get a trust badge on their profile.
+                      Verified users receive a trust badge on their profile and gain access to premium features.
                     </p>
                   </div>
                 </div>
