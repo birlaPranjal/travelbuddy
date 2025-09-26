@@ -419,7 +419,7 @@ export default function UpdateUserPage() {
                 <div className="flex items-start space-x-3">
                   <span className="text-blue-400 text-lg">🔒</span>
                   <div className="text-sm">
-                    <p className="text-blue-300 font-medium mb-1">Why do we need this?</p>
+                    <p className="text-blue-300 font-medium mb-1">Why is verification required?</p>
                     <p className="text-blue-200/80">
                       Your verification documents help us ensure the safety of our travel community. 
                       All documents are securely stored and only used for verification purposes. 
