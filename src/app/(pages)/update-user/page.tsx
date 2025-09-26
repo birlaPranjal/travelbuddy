@@ -271,6 +271,7 @@ export default function UpdateUserPage() {
         verificationDocUrl = result.secure_url;
       } catch (error) {
         console.error('Error uploading verification document:', error);
+        alert('Failed to upload verification document. Please try again.');
       }
     }
 
