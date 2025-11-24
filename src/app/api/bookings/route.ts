@@ -32,13 +32,21 @@ export async function POST(request: NextRequest) {
   try {
     const bookingData: BookingData = await request.json();
     
+    // Validate required fields
+    if (!bookingData.itineraryId || !bookingData.userId || !bookingData.startDate) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields: itineraryId, userId, and startDate are required' },
+        { status: 400 }
+      );
+    }
+    
     // Connect to database
     await connectToDatabase();
     
     // Create new booking
     const booking = await Booking.create(bookingData);
     
-    return NextResponse.json({ success: true, booking });
+    return NextResponse.json({ success: true, booking }, { status: 201 });
   } catch (error) {
     console.error('Error creating booking:', error);
     return NextResponse.json(
