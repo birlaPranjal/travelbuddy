@@ -20,9 +20,10 @@ async function getCoordinates(destination: string): Promise<{
   formattedAddress: string;
 } | null> {
   try {
+    const apiKey = process.env.OPENCAGE_API_KEY || 'dacf037a4ac84e9ebfe82798e50cb633';
     const encodedDestination = encodeURIComponent(destination);
     const response = await fetch(
-      `https://api.opencagedata.com/geocode/v1/json?q=${encodedDestination}&key=dacf037a4ac84e9ebfe82798e50cb633&limit=1`
+      `https://api.opencagedata.com/geocode/v1/json?q=${encodedDestination}&key=${apiKey}&limit=1`
     );
 
     if (!response.ok) {
