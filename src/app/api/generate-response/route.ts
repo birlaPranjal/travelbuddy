@@ -1,24 +1,11 @@
-import OpenAI from 'openai';
-
-// Initialize OpenAI API
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { processTravelQuery, isTravelRelated } from '@/app/lib/nlp/travelNLP';
 
 interface RequestBody {
   prompt: string;
 }
 
-
 export async function POST(req: Request): Promise<Response> {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return Response.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      );
-    }
-
     const { prompt }: RequestBody = await req.json();
     
     if (!prompt || prompt.trim().length === 0) {
@@ -28,35 +15,24 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
+    // Check if query is travel-related
+    if (!isTravelRelated(prompt)) {
+      return Response.json({
+        text: "I'm Gantavya AI, your specialized travel companion for India! 🇮🇳\n\nI focus exclusively on helping you explore India - destinations, travel tips, cuisine, culture, and itineraries.\n\nCould you ask me something about traveling in India? I'd love to help you plan your journey! ✈️"
+      });
+    }
 
-    // Create completion with OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are Gantavya AI, a specialized travel assistant focused on Indian travel and tourism. You must strictly focus on travel and tourism topics about India. Your responses should always relate to Indian destinations, travel tips, tourist attractions, or India-specific travel information. If asked about non-travel topics, politely redirect the conversation back to travel in India. Use an enthusiastic, friendly tone and make responses concise but informative. Include emojis occasionally to add personality."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-    });
-
-    const responseText = completion.choices[0].message.content || "I'm not sure how to respond to that. Could you ask about travel in India?";
+    // Process query using custom NLP model
+    const responseText = processTravelQuery(prompt);
     
     return Response.json({ text: responseText });
-  }
-   catch (error: unknown) {
-    console.error('OpenAI API Error:', error);
+  } catch (error: unknown) {
+    console.error('NLP Processing Error:', error);
     
     if (error instanceof Error) {
       return Response.json(
         { 
-          error: 'Failed to fetch AI response', 
+          error: 'Failed to process travel query', 
           details: error.message 
         }, 
         { status: 500 }
@@ -64,7 +40,7 @@ export async function POST(req: Request): Promise<Response> {
     }
     return Response.json(
       { 
-        error: 'Failed to fetch AI response', 
+        error: 'Failed to process travel query', 
         details: 'Unknown error'
       }, 
       { status: 500 }
