@@ -47,8 +47,16 @@ export const formatDate = (
  * Truncates text to a specified length
  */
 export const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
+  if (!text || text.length <= maxLength) return text;
   return text.slice(0, maxLength) + '...';
+};
+
+/**
+ * Validates email format
+ */
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
 /**
