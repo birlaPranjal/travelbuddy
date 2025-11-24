@@ -12,9 +12,16 @@ interface RequestBody {
 
 export async function POST(req: Request): Promise<Response> {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      return Response.json(
+        { error: 'OpenAI API key not configured' },
+        { status: 500 }
+      );
+    }
+
     const { prompt }: RequestBody = await req.json();
     
-    if (!prompt) {
+    if (!prompt || prompt.trim().length === 0) {
       return Response.json(
         { error: 'Prompt is required' }, 
         { status: 400 }
