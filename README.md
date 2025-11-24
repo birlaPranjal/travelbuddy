@@ -7,11 +7,35 @@ First, set up your environment variables:
 1. Create a `.env.local` file in the root directory
 2. Add the following variables:
    ```
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASSWORD=your-email-app-password
+   # Database
+   MONGODB_URI=mongodb+srv://...
+   
+   # Authentication
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-long-secure-secret-key
+   
+   # Email Service
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASSWORD=your-email-app-password
+   
+   # AI Service
    OPENAI_API_KEY=your-openai-api-key
+   
+   # Geocoding (Optional)
+   OPENCAGE_API_KEY=your-opencage-api-key
+   
+   # Payment Gateway
+   RAZORPAY_KEY_ID=your-razorpay-key-id
+   RAZORPAY_SECRET=your-razorpay-secret
+   
+   # Blockchain
+   NFT_CONTRACT_ADDRESS=0x...
+   RPC_URL=https://rpc-amoy.polygon.technology
+   
+   # Cloudinary
+   CLOUDINARY_CLOUD_NAME=your-cloud-name
+   CLOUDINARY_API_KEY=your-api-key
+   CLOUDINARY_API_SECRET=your-api-secret
    ```
 
 Then, run the development server:
